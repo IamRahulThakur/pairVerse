@@ -1,31 +1,36 @@
 import express from 'express';
-import  AdminAuth  from './middlewares/auth.js';
-
+import connectDB from './config/database.js';
+import {UserModel} from './model/user.js'; // Assuming you have a User model defined// Importing the UserModel 
 const app = express();
 
-app.use("/admin", AdminAuth);
-
-app.get("/admin/data" ,(req, res) => {
+app.post("/signup",  async (req, res) => {
+  const user = new UserModel({
+    firstName: "Sunny",
+    lastName: "Thakur",
+    emailId: "akppkapadjfp@g,ail.com",
+    password: "kadbfjab",
+  })
+  // Always use try-catch block for async operation to handle errors
   try {
-    // Simulating some admin data retrieval logic
-    throw new Error('Simulated error for testing');
-    console.log('Admin data retrieved successfully');
-    res.json({ message: 'Admin data retrieved successfully' });
-  } 
-  catch (error) {
-    console.error('Error retrieving admin data:', error);
-    res.status(500).send('Internal Server Error'); 
+    await user.save();
+    res.send({
+      message: "User created successfully",
+    });
+  } catch (error) {
+    res.status(400).send({
+      message: "Error creating user",
+      error: error.message,
+    });
   }
 });
 
-// Wild card route for error handling
-app.use("/" , (err, req, res, next) => {
-  if(err) {
-    console.error(err.stack);
-    res.status(500).send('Something broke!');
-  }
-})
 
-app.listen(3000, () => {
+connectDB().then(() => {
+  console.log("Database connected successfully");
+  // Start the server after successful database connection
+  app.listen(3000, () => {
   console.log('Server is running on port 3000');
+  });
+}).catch((err) => {
+    console.error("Error connecting to MongoDB:", err);
 });
