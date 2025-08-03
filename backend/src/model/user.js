@@ -1,9 +1,10 @@
 import mongoose from "mongoose";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
 const userSchema = new mongoose.Schema({
     firstName: {
         type: String,
-        required: true,
         minLength: 4,
         maxLength: 10
     },
@@ -45,15 +46,12 @@ const userSchema = new mongoose.Schema({
     },
     domain: {
         type: String,
-        required: true,
     },
     techStack: {
         type: [String],
-        required: true,
     },
     experienceLevel: {
         type: String,
-        required: true,
         default: "beginner",
         validate(value) {
             if(!["beginner", "intermediate", "advanced"].includes(value)) {
@@ -63,7 +61,6 @@ const userSchema = new mongoose.Schema({
     },
     timezone: {
         type: String,
-        required: true,
         default: "Asia/Kolkata",
     },
     linkedIn: {
@@ -78,5 +75,18 @@ const userSchema = new mongoose.Schema({
         type: String,
     },
 },{timestamps: true} );
+
+
+userSchema.methods.validatePassword = async function(EnteredPassword) {
+    const user = this;
+    const isMatch = await bcrypt.compare(EnteredPassword, user.password);
+    return isMatch;
+}
+
+userSchema.methods.getJwtToken = async function() {
+    const user = this;
+    const token = jwt.sign({userId: user._id}, 'Rahul@2#$%^&*3');
+    return token;
+}
 
 export const UserModel = mongoose.model("User", userSchema);
