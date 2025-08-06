@@ -31,7 +31,6 @@ authRouter.post("/signup", async (req, res) => {
   }
 });
 
-
 authRouter.post("/login", async (req, res) => {
   const { emailId, password } = req.body;
 
@@ -59,7 +58,6 @@ authRouter.post("/login", async (req, res) => {
     res.status(500).send({ error: error.message });
   }
 });
-
 
 authRouter.post("/logout",userAuth , async(req, res) => {
     res.clearCookie('token');

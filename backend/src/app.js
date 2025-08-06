@@ -8,6 +8,7 @@ import jwt from "jsonwebtoken";
 import { userAuth } from "./middlewares/auth.js";
 import authRouter from "./routes/auth.js";
 import profileRouter from "./routes/profile.js"
+import requestRouter from "./routes/request.js";
 
 export const app = express();
 
@@ -17,7 +18,7 @@ app.use(cookieParser()); // Middleware to parse cookies
 
 app.use('/', authRouter);
 app.use('/', profileRouter);
-
+app.use('/', requestRouter)
 
 // Connecting to DB Before Starting Server
 connectDB() .then(() => {
