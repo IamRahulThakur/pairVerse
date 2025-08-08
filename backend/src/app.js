@@ -9,6 +9,7 @@ import { userAuth } from "./middlewares/auth.js";
 import authRouter from "./routes/auth.js";
 import profileRouter from "./routes/profile.js"
 import requestRouter from "./routes/request.js";
+import userRouter from "./routes/user.js";
 
 export const app = express();
 
@@ -18,7 +19,8 @@ app.use(cookieParser()); // Middleware to parse cookies
 
 app.use('/', authRouter);
 app.use('/', profileRouter);
-app.use('/', requestRouter)
+app.use('/', requestRouter);
+app.use('/', userRouter);
 
 // Connecting to DB Before Starting Server
 connectDB() .then(() => {

@@ -34,7 +34,6 @@ const userSchema = new mongoose.Schema({
             values: ['male', 'female', 'other'],
             message: '{VALUE} is not supported'
         },
-        required: true,
     },
     photourl: {
         type: String,
