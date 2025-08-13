@@ -10,6 +10,7 @@ import authRouter from "./routes/auth.js";
 import profileRouter from "./routes/profile.js"
 import requestRouter from "./routes/request.js";
 import userRouter from "./routes/user.js";
+import { startCleanNotifications } from "./cron/notificationCleanup.js";
 
 export const app = express();
 
@@ -22,13 +23,15 @@ app.use('/', profileRouter);
 app.use('/', requestRouter);
 app.use('/', userRouter);
 
-// Connecting to DB Before Starting Server
-connectDB() .then(() => {
-    console.log("Database connected successfully");
-    // Start the server after successful database connection
-    app.listen(3000, () => {
-      console.log("Server is running on port 3000");
-    });
-  }).catch((err) => {
-    console.error("Error connecting to MongoDB:", err);
+
+connectDB()
+  .then(() => {
+    console.log("Database connected");
+    app.listen(3000, () => console.log("Server running"));
+      startCleanNotifications();
+
+  })
+  .catch(err => {
+    console.error("DB connection error:", err);
   });
+

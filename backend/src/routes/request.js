@@ -2,6 +2,7 @@ import express from 'express';
 import { userAuth } from '../middlewares/auth.js';
 import { ConnectionRequestModel } from '../model/connectionRequest.js';
 import { UserModel } from '../model/user.js';
+import {notificationModel} from '../model/notifications.js';
 
 const requestRouter = express.Router();
 
@@ -18,7 +19,7 @@ requestRouter.post("/request/send/:status/:toUserId", userAuth, async (req, res)
             throw  new Error("User Does not exists");
         }
 
-        const allowedStatus = ["intrested", "ignored"];
+        const allowedStatus = ["interested", "ignored"];
         if(!allowedStatus.includes(status)) {
             return res.
                 status(400)
@@ -45,9 +46,24 @@ requestRouter.post("/request/send/:status/:toUserId", userAuth, async (req, res)
             status
         })
         const data = await connectionRequest.save();
+
+        const findFromUserId = await UserModel.findById(req.userId);
+
+
+        const notificationCreated = new notificationModel({
+            fromUserId: fromUserId,
+            toUserId: toUserId,
+            type: "connection_request",
+            title: `New connection request from ${findFromUserId.firstName}`,
+            status: "unread"
+        });
+
+        const notification = await notificationCreated.save();
+
         res.json({
             message: "Connection Made Successfully",
             data,
+            notification
         })
     }
     catch (error) {
@@ -86,6 +102,18 @@ requestRouter.post("/request/review/:status/:requestId", userAuth, async (req, r
         connectionRequest.status = req.body.status;
         const data = await connectionRequest.save();
 
+        const user = await UserModel.findById(req.userId);
+
+        if(req.body.status === "accepted") {
+            const notification = new notificationModel({
+                fromUserId: connectionRequest.toUserId,
+                toUserId: connectionRequest.fromUserId,
+                type: "connection_request",
+                title: `Your connection request has been ${req.body.status} by ${user.firstName} `,
+                status: "unread"
+            });
+            await notification.save();
+        }
         res.json({
             message: `Connection Request ${req.body.status}`,
             data
