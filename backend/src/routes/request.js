@@ -8,7 +8,7 @@ const requestRouter = express.Router();
 
 requestRouter.post("/request/send/:status/:toUserId", userAuth, async (req, res) => {
     try {
-        const fromUserId = req.userId;
+        const fromUserId = req.user._id;
         const toUserId = req.params.toUserId;
         const status = req.params.status;
 
@@ -47,7 +47,7 @@ requestRouter.post("/request/send/:status/:toUserId", userAuth, async (req, res)
         })
         const data = await connectionRequest.save();
 
-        const findFromUserId = await UserModel.findById(req.userId);
+        const findFromUserId = await UserModel.findById(req.user._id);
 
 
         const notificationCreated = new notificationModel({
@@ -88,7 +88,7 @@ requestRouter.post("/request/review/:status/:requestId", userAuth, async (req, r
         }
 
         // 3. Check that logged-in user is the receiver
-        if (req.userId.toString() !== connectionRequest.toUserId.toString()) {
+        if (req.user._id.toString() !== connectionRequest.toUserId.toString()) {
             throw new Error("Not authorized to review this request!");
         }
 
@@ -102,7 +102,7 @@ requestRouter.post("/request/review/:status/:requestId", userAuth, async (req, r
         connectionRequest.status = req.body.status;
         const data = await connectionRequest.save();
 
-        const user = await UserModel.findById(req.userId);
+        const user = await UserModel.findById(req.user._id);
 
         if(req.body.status === "accepted") {
             const notification = new notificationModel({

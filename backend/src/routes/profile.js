@@ -5,9 +5,24 @@ import { UserModel } from '../model/user.js';
 const profileRouter = express.Router();
 
 profileRouter.get("/profile", userAuth, async(req, res) => {
-  const user = await UserModel.findById(req.userId);
-  res.send(user)
+  // Fetch user profile data
+  const user = await UserModel.findById(req.user._id, {
+    firstName: 1,
+    lastName: 1,
+    username: 1,
+    age: 1,
+    emailId: 1,
+    photourl: 1,
+    linkedIn: 1,
+    bio: 1, 
+    techStack: 1,
+    experienceLevel : 1,
+    Github: 1,
+    age: 1,
+    domain: 1,
+  });
 
+  res.send(user);
 })
 
 profileRouter.patch("/profile/edit", userAuth ,async (req, res) => {

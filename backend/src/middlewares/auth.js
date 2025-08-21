@@ -22,7 +22,7 @@ export const userAuth =async (req, res, next) => {
     if (!user) {
       throw new Error("User not Found...");
     }
-    req.userId = userId;
+    req.user = user;
     // Proceed to the next middleware or route handler
     next();
   } catch (error) {

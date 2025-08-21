@@ -3,6 +3,7 @@ import { userAuth } from '../middlewares/auth.js';
 import { ConnectionRequestModel } from '../model/connectionRequest.js';
 import { UserModel } from '../model/user.js';
 import { notificationModel } from '../model/notifications.js';
+import { PostModel } from '../model/post.js';
 
 const userRouter = express.Router();
 
@@ -25,7 +26,7 @@ userRouter.get("/user/requests/received" , userAuth, async (req , res) => {
         // Isme hame bas vo data bejna hai jo where toUserId 
         // is req.userId
         const data =  await ConnectionRequestModel.find({
-            toUserId: req.userId,
+            toUserId: req.user._id,
             status: "interested"
         }).populate('fromUserId', "firstName lastName");
 
@@ -46,13 +47,13 @@ userRouter.get("/user/connections", userAuth , async (req, res) => {
         // ki userId hai and status accepted hai
         const connectionData =  await ConnectionRequestModel.find({
             $or: [
-                {toUserId: req.userId, status: "accepted"},
-                {fromUserId: req.userId , status: "accepted"}
+                {toUserId: req.user._id, status: "accepted"},
+                {fromUserId: req.user._id , status: "accepted"}
             ]
         }).populate('toUserId', USER_SAFE_DATA).populate('fromUserId' , USER_SAFE_DATA);
  
         const data = connectionData.map((row) => {
-                if(row.toUserId._id.toString() === req.userId.toString()) {
+                if(row.toUserId._id.toString() === req.user._id.toString()) {
                     return row.fromUserId;
                 }
                 else {
@@ -72,19 +73,20 @@ userRouter.get("/user/connections", userAuth , async (req, res) => {
 userRouter.get("/user/notifications", userAuth , async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 2;
+        let limit = parseInt(req.query.limit) || 2;
+        limit = limit > 20 ? 20 : limit;
         const skip = (page - 1) * limit;
         // Whenever user click He sees all Notification whose 
         // Status are unread we display only Notifiation Title
         const notifications = await notificationModel.find({
-            toUserId: req.userId,
+            toUserId: req.user._id,
             status: "unread"
         }).skip(skip).limit(limit);
 
         if (notifications.length === 0) {
             return res.status(200).send("No unread notifications");
         }
-        
+
         res.send(notifications.map(notification => notification.title));
     }
     catch (err) {
@@ -109,7 +111,7 @@ userRouter.patch("/user/notification/:notificationId/mark-read", userAuth, async
     }
 
     // Check if current user owns this notification
-    if (notification.toUserId.toString() !== req.userId.toString()) {
+    if (notification.toUserId.toString() !== req.user._id.toString()) {
       return res.status(403).json({ error: "Not authorized to access this notification" });
     }
 
@@ -130,7 +132,7 @@ userRouter.patch("/user/notification/:notificationId/mark-read", userAuth, async
 userRouter.patch("/user/notifications/mark-all-read", userAuth, async (req, res) => {
     try {
         const notifications = await notificationModel.find({
-            toUserId: req.userId,
+            toUserId: req.user._id,
             status: "unread"
         });
 
@@ -139,7 +141,7 @@ userRouter.patch("/user/notifications/mark-all-read", userAuth, async (req, res)
         }
 
         await notificationModel.updateMany(
-            { toUserId: req.userId, status: "unread" },
+            { toUserId: req.user._id, status: "unread" },
             { $set: { status: "read" } }
         );
 
@@ -148,6 +150,90 @@ userRouter.patch("/user/notifications/mark-all-read", userAuth, async (req, res)
         res.status(500).json({ error: err.message });
     }
 });
+
+
+// User Create a Post on plateform
+userRouter.post("/user/posts/create" , userAuth, async(req, res) => {
+    try {
+        const user = req.user;
+        const { title, content } = req.body;
+
+        if (!title || !content) {
+            return res.status(400).send({ error: "Title and content are required" });
+        }
+
+        const newPost = new PostModel({
+            title,
+            content,
+            userId: user._id
+        });
+
+        await newPost.save();
+        res.status(201).send(newPost);
+    }
+    catch(error) {
+        res.status(500).send({error: error.message});
+    }
+});
+
+// User delete his post
+userRouter.delete("/user/posts/delete/:postId", userAuth, async (req, res) => {
+
+    try {
+        const postId = req.params.postId;
+        if(!postId) {
+            res.status(400).send({error: "Post ID is required"});
+        }
+        const post = await PostModel.findById(postId);
+        if(!post) {
+            res.status(404).send({error: "Post not found"});
+        }
+        if(post.userId.toString() !== req.user._id.toString()) {
+            return res.status(403).send({error: "You are not authorized to delete this post"});
+        }
+
+        await PostModel.findByIdAndDelete(postId);
+        res.status(200).send({message: "Post deleted successfully"});
+    }
+    catch(error) {
+        res.status(500).send({error: error.message});
+    }
+})
+
+// Generating feed for User
+userRouter.get("/user/posts/feed", userAuth, async (req, res) => {
+    try {
+        const user = req.user;
+        if (!user) {
+            return res.status(401).send({ error: "Unauthorized" });
+        }
+        const connectionData = await ConnectionRequestModel.find({
+            $or: [
+                {toUserId: req.user._id, status: "accepted"},
+                {fromUserId: req.user._id , status: "accepted"}
+            ]
+        })
+        const data = connectionData.map((row) => {
+            if(row.toUserId._id.toString() === req.user._id.toString()) {
+                return row.fromUserId;
+            }
+            else {
+                return row.toUserId;
+            }
+        });
+
+        const feedData = await PostModel.find({
+            userId: {
+                $in: data.map(user => user._id)
+            }
+        }).populate('userId', USER_SAFE_DATA).sort({ createdAt: -1 });
+
+        res.status(200).send(feedData);
+    }
+    catch(error) {
+        res.status(500).send({error: error.message});
+    }
+})
 
 
 export default userRouter;
