@@ -3,15 +3,19 @@ import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { api } from "../utils/api";
+import { useDispatch } from "react-redux";
+import { removeUser } from "../utils/userSlice";
 
 const NavBar = () => {
   const user = useSelector((store) => store.user);
   const Navigate = useNavigate();
+  const dispatch = useDispatch();
+
   const handleLogout = async () => {
     try {
       await api.post("/logout");
-      window.alert("Logged out successfully");
       Navigate("/login");
+      dispatch(removeUser())
     }
     catch (error) {
       console.error("Error during logout:", error);
