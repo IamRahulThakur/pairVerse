@@ -11,7 +11,7 @@ export const userAuth =async (req, res, next) => {
 
     // Validate Token 
     if (!token) {
-      throw new Error("Please login.....")
+      return res.status(401).send({ error: "Please Login First..." });
     }
     
     // Decoded return a object contain {paylod , iat(issued at time)}

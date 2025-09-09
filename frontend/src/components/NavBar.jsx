@@ -1,14 +1,28 @@
 import React from "react";
 import { useSelector } from "react-redux";
+import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { api } from "../utils/api";
 
 const NavBar = () => {
   const user = useSelector((store) => store.user);
+  const Navigate = useNavigate();
+  const handleLogout = async () => {
+    try {
+      await api.post("/logout");
+      window.alert("Logged out successfully");
+      Navigate("/login");
+    }
+    catch (error) {
+      console.error("Error during logout:", error);
+    } 
+  }
 
   return (
     <>
       <div className="navbar bg-base-200 shadow-sm">
         <div className="flex-1">
-          <a className="btn btn-ghost text-xl">PairVerse</a>
+          <Link to="feed" className="btn btn-ghost text-xl">PairVerse</Link>
         </div>
         {user && 
         <div className="flex gap-2">
@@ -36,16 +50,16 @@ const NavBar = () => {
               className="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow"
             >
               <li>
-                <a className="justify-between">
+                <Link to="/profile" className="justify-between" >
                   Profile
                   <span className="badge">New</span>
-                </a>
+                </Link>
               </li>
               <li>
                 <a>Settings</a>
               </li>
               <li>
-                <a>Logout</a>
+                <button onClick={handleLogout} >Logout</button>
               </li>
             </ul>
           </div>
