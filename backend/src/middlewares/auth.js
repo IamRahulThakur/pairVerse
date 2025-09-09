@@ -13,8 +13,11 @@ export const userAuth =async (req, res, next) => {
     if (!token) {
       throw new Error("Please login.....")
     }
-
+    
+    // Decoded return a object contain {paylod , iat(issued at time)}
+    // In our case payload was {userId: user._id} 
     const decoded = jwt.verify(token , "Rahul@2#$%^&*3");
+    // So here we are taking userId from decoded Object
     const userId = decoded.userId;
 
     const user = await UserModel.findById(userId);

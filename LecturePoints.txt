@@ -1,0 +1,5 @@
+Ideal way of Connecting DB
+=> First Create Database in database.js file as this is a async task then use async await it will give a promise
+=> Then in main file first Connect to DB and then start server (means use server.start in ConnectDB.then) because agar ham direct hi usko call kar denge to kya pata DB connect hone se phle hi server run ho jaye ham db se connect ha ho paye
+
+

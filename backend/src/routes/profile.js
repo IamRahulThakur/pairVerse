@@ -1,6 +1,8 @@
 import express from 'express';
 import { userAuth } from '../middlewares/auth.js';
 import { UserModel } from '../model/user.js';
+import validator from 'validator';
+import bcrypt from 'bcrypt';
 
 const profileRouter = express.Router();
 
@@ -25,6 +27,7 @@ profileRouter.get("/profile", userAuth, async(req, res) => {
   res.send(user);
 })
 
+
 profileRouter.patch("/profile/edit", userAuth ,async (req, res) => {
   try {
     const data = req.body;
@@ -32,9 +35,18 @@ profileRouter.patch("/profile/edit", userAuth ,async (req, res) => {
     if (data.emailId || data.password) {
       throw new Error("Invalid edit Request...");
     }
+    
+    const username = req.body.username;
+    if(username) {
+      await UserModel.findOne({username : username}).then((user) => {
+        if(user && user._id.toString() !== req.user._id.toString()) {
+          throw new Error("Username already exists...");
+        }
+      });
+    }
 
     // Update user profile
-    const user = await UserModel.findByIdAndUpdate(req.userId, data, {
+    await UserModel.findByIdAndUpdate(req.user._id, data, {
       new: true,
       runValidators: true,
     });
@@ -45,5 +57,48 @@ profileRouter.patch("/profile/edit", userAuth ,async (req, res) => {
     res.status(500).send({ error: error.message });
   }
 });
+
+
+profileRouter.patch("/profile/updatePassword" , userAuth , async (req, res) => {
+  const {password , newPassword, confirmPassword} = req.body;
+
+  try {
+    if(!password) {
+      throw new Error("Please Enter Your Current Password");
+    }
+
+    const isPasswordValid = await req.user.validatePassword(password);
+    if(!isPasswordValid)
+      res.status(500).send("Please Enter Correct Password !! ");
+
+    if(newPassword.toString() === password.toString())
+      res.status(500).send("Updated Password can't be same as previous password");
+
+    if(newPassword.toString() !== confirmPassword.toString())
+      res.status(500).send("Confirm Password did not Match");
+
+    if(!validator.isStrongPassword(newPassword))
+      res.status(500).send("Password must be at least 8 characters long, include uppercase, lowercase, number, special character, and no spaces.");
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await UserModel.findByIdAndUpdate(
+      { _id: req.user._id },
+      { password: hashedPassword }
+    );
+
+    // Clearing Old JWT token
+    res.clearCookie("token");
+
+    // Creating new Token for same user after updated password
+    const newToken = await req.user.getJwtToken();
+    res.cookie("token" , newToken);
+
+    res.send("Password Updated Successfully !!! ");
+  }
+  catch(err) {
+    res.status(500).send({error: err.message});
+  }
+})
+
 
 export default profileRouter;
