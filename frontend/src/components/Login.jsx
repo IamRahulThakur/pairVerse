@@ -8,8 +8,8 @@ import {api} from "../utils/api";
 
 const Login = () => {
 
-  const [emailId , setEmailId] = useState("rahul@gmail.com");
-  const [password , setPassword] = useState("Rahul@123");
+  const [emailId , setEmailId] = useState("sunny@gmail.com");
+  const [password , setPassword] = useState("Sunny@123");
   const [errorMessage, setErrorMessage] = useState("");
   const dispatch = useDispatch();
   const  navigate = useNavigate();

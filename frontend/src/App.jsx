@@ -1,5 +1,4 @@
 import Body from "./components/Body";
-import Card from "./components/card";
 import Login from "./components/Login";
 import NavBar from "./components/NavBar";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
@@ -8,6 +7,7 @@ import { Provider } from "react-redux";
 import appStore from "./utils/appStore";
 import Feed from "./components/Feed";
 import Signup from "./components/Signup";
+import Footer from "./components/Footer";
 
 function App() {
   return (
@@ -20,6 +20,7 @@ function App() {
               <Route path="/signup" element={<Signup />} />
               <Route path="/feed" element={<Feed />} />
               <Route path="/profile" element={<Profile />} />
+              <Route path="/footer" element={<Footer />} />
             </Route>
           </Routes>
         </BrowserRouter>
