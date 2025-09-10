@@ -5,6 +5,7 @@ import { addUser } from "../utils/userSlice";
 import { useDispatch } from "react-redux"
 import { useNavigate } from "react-router-dom";
 import {api} from "../utils/api";
+import toast , { Toaster }  from "react-hot-toast";
 
 const Login = () => {
 
@@ -23,6 +24,7 @@ const Login = () => {
         { emailId, password},
     );
     dispatch(addUser(response.data));
+    toast.success("logged in successfully")
     return navigate("/feed");
     } catch (error) {
       setErrorMessage(error?.response?.data.message || "Login failed. Please try again");

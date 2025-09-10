@@ -1,7 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../utils/api";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { addUser } from "../utils/userSlice";
 
 const Signup = () => {
   const [emailId, setEmailId] = useState("");
@@ -9,24 +11,26 @@ const Signup = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [invalidPasswordMessage, setInvalidPasswordMessage] = useState(null);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
 
-  
-
+   
   const handleSignup = async (e) => {
     e.preventDefault();
     try {
         if (password !== confirmPassword) {
-        setInvalidPasswordMessage("Passwords do not match");
-        return;
-      }
+          setInvalidPasswordMessage("Passwords do not match");
+          return;
+        }
       const response = await api.post("/signup", { emailId, password });
       console.log("Signup successful:", response.data);
+      dispatch(addUser(response));  r
       return navigate("/profile");
     } catch (error) {
       console.error("Signup failed:", error);
     }
   };
+
 
   return (
     <div className="flex justify-center items-center h-screen bg-base-200">

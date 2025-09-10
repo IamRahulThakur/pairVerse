@@ -12,6 +12,7 @@ const Body = () => {
   const userData = useSelector((store) => store.user);
 
   const fetchUser = async () => {
+    if(userData) return;
     try {
       const res = await api.get("/profile");
       dispatch(addUser(res.data));
@@ -23,7 +24,6 @@ const Body = () => {
         console.error("Error fetching user data:", error);
       }
     }
-
   }
 
   useEffect(() => {

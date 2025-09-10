@@ -8,6 +8,8 @@ import appStore from "./utils/appStore";
 import Feed from "./components/Feed";
 import Signup from "./components/Signup";
 import Footer from "./components/Footer";
+import EditProfile from "./components/EditProfile";
+import ConnectionRequests from "./components/ConnectionRequests";
 
 function App() {
   return (
@@ -20,6 +22,9 @@ function App() {
               <Route path="/signup" element={<Signup />} />
               <Route path="/feed" element={<Feed />} />
               <Route path="/profile" element={<Profile />} />
+              <Route path="/profile/edit" element={<EditProfile/>} />
+              <Route path="/connection/requests" element={<ConnectionRequests/>} />
+              
               <Route path="/footer" element={<Footer />} />
             </Route>
           </Routes>

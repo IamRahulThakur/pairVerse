@@ -22,6 +22,7 @@ profileRouter.get("/profile", userAuth, async(req, res) => {
     Github: 1,
     age: 1,
     domain: 1,
+    gender: 1,
   });
 
   res.send(user);
@@ -32,15 +33,18 @@ profileRouter.patch("/profile/edit", userAuth ,async (req, res) => {
   try {
     const data = req.body;
 
-    if (data.emailId || data.password) {
-      throw new Error("Invalid edit Request...");
+    if (data.emailId || data.password || data.age) {
+      return res.status(422).send("Invalid Updates")
     }
     
     const username = req.body.username;
     if(username) {
       await UserModel.findOne({username : username}).then((user) => {
         if(user && user._id.toString() !== req.user._id.toString()) {
-          throw new Error("Username already exists...");
+          return res.status(409).json({
+            field: "username",
+            message: "username exists"
+          })
         }
       });
     }
