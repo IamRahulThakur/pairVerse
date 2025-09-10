@@ -72,9 +72,11 @@ requestRouter.post("/request/send/:status/:toUserId", userAuth, async (req, res)
 });
 
 
+// Accept of Reject Request
 requestRouter.post("/request/review/:status/:requestId", userAuth, async (req, res) => {
     try {
-        const { status, requestId } = req.params;
+        const status = req.params.status;
+        const requestId = req.params.requestId;
 
         // 1. Validate request ID
         const connectionRequest = await ConnectionRequestModel.findById(requestId);
@@ -83,8 +85,8 @@ requestRouter.post("/request/review/:status/:requestId", userAuth, async (req, r
         }
 
         // 2. Check initial request status must be "interested"
-        if (status !== "interested" || connectionRequest.status !== "interested") {
-            throw new Error("Not a valid Request to review!");
+        if (connectionRequest.status !== "interested") {
+            return res.status(400).json({message : "Not a valid Request"})
         }
 
         // 3. Check that logged-in user is the receiver
@@ -94,28 +96,28 @@ requestRouter.post("/request/review/:status/:requestId", userAuth, async (req, r
 
         // 4. Validate new status
         const allowedStatus = ["accepted", "rejected"];
-        if (!allowedStatus.includes(req.body.status)) {
+        if (!allowedStatus.includes(status)) {
             throw new Error("Not a valid choice to update!");
         }
 
         // 5. Update status
-        connectionRequest.status = req.body.status;
+        connectionRequest.status = status;
         const data = await connectionRequest.save();
 
         const user = await UserModel.findById(req.user._id);
 
-        if(req.body.status === "accepted") {
+        if(status === "accepted") {
             const notification = new notificationModel({
                 fromUserId: connectionRequest.toUserId,
                 toUserId: connectionRequest.fromUserId,
                 type: "connection_request",
-                title: `Your connection request has been ${req.body.status} by ${user.firstName} `,
+                title: `Your connection request has been ${status} by ${user.firstName} `,
                 status: "unread"
             });
             await notification.save();
         }
         res.json({
-            message: `Connection Request ${req.body.status}`,
+            message: `Connection Request ${status}`,
             data
         });
 

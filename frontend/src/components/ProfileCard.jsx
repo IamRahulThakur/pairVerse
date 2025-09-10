@@ -12,14 +12,16 @@ const ProfileCard = ({ user }) => {
     );
 
   return (
-    <div className="max-w-sm mx-auto bg-gray-900 shadow-xl rounded-2xl overflow-hidden border border-gray-700 transition-transform transform hover:scale-105">
-      <Link
-        to="/profile/edit"
-        className="absolute top-4 right-4 px-3 py-1 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-md transition-colors"
-      >
-        Edit
-      </Link>
-      <div className="flex flex-col items-center p-6">
+    <div className="max-w-sm mx-auto bg-gray-900 shadow-xl rounded-2xl overflow-hidden border border-gray-700">
+      <div className="relative flex flex-col items-center p-6">
+        {/* Edit Button (fixed inside card) */}
+        <Link
+          to="/profile/edit"
+          className="absolute top-2 right-2 px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded-lg shadow-md"
+        >
+          ✎ Edit
+        </Link>
+
         <img
           className="w-24 h-24 rounded-full object-cover border-2 border-gray-700"
           src={user.photourl || "/default-avatar.png"}
@@ -47,7 +49,7 @@ const ProfileCard = ({ user }) => {
             href={user.Github}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-gray-400 hover:text-white transition-colors"
+            className="text-gray-400 hover:text-white"
           >
             GitHub
           </a>
@@ -55,7 +57,7 @@ const ProfileCard = ({ user }) => {
             href={user.linkedIn}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-gray-400 hover:text-white transition-colors"
+            className="text-gray-400 hover:text-white"
           >
             LinkedIn
           </a>

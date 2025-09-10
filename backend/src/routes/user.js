@@ -28,7 +28,7 @@ userRouter.get("/user/requests/received" , userAuth, async (req , res) => {
         const data =  await ConnectionRequestModel.find({
             toUserId: req.user._id,
             status: "interested"
-        }).populate('fromUserId', "firstName lastName");
+        }).populate('fromUserId', "firstName lastName  photourl domain");
 
         res.send(data);
 

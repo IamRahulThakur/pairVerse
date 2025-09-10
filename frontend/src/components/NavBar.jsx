@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { api } from "../utils/api";
 import { useDispatch } from "react-redux";
 import { removeUser } from "../utils/userSlice";
-import toast , { Toaster }  from "react-hot-toast";
+import toast, { Toaster } from "react-hot-toast";
 
 const NavBar = () => {
   const user = useSelector((store) => store.user);
@@ -41,14 +41,13 @@ const NavBar = () => {
               <>
                 <div> Welcome {user.firstName} </div>
                 <div className="dropdown dropdown-end">
-                  <div
-                    tabIndex={0}
-                    className="btn btn-ghost btn-circle avatar"
-                  >
+                  <div tabIndex={0} className="btn btn-ghost btn-circle avatar">
                     <div className="w-10 rounded-full">
                       <img
                         alt="User photo"
-                        src={user?.photourl || "https://placeimg.com/80/80/people"}
+                        src={
+                          user?.photourl || "https://placeimg.com/80/80/people"
+                        }
                       />
                     </div>
                   </div>
@@ -62,7 +61,10 @@ const NavBar = () => {
                       </Link>
                     </li>
                     <li>
-                      <Link to="/connection/requests" className="justify-between">
+                      <Link
+                        to="/connection/requests"
+                        className="justify-between"
+                      >
                         Requests
                       </Link>
                     </li>
@@ -76,42 +78,42 @@ const NavBar = () => {
           </div>
 
           {/* Mobile Hamburger */}
-          {user && (<>
-          <div className="md:hidden flex items-center">
-            < button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="btn btn-square btn-ghost"
-            >
-              <svg
-                className="h-6 w-6"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                {isMobileMenuOpen ? (
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                ) : (
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 6h16M4 12h16M4 18h16"
-                  />
-                )}
-              </svg>
-            </button>
-          </div>
-          
-          </>)}
+          {user && (
+            <>
+              <div className="md:hidden flex items-center">
+                <button
+                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                  className="btn btn-square btn-ghost"
+                >
+                  <svg
+                    className="h-6 w-6"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    {isMobileMenuOpen ? (
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    ) : (
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 6h16M4 12h16M4 18h16"
+                      />
+                    )}
+                  </svg>
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </div>
-      
 
       {/* Mobile Menu */}
       {isMobileMenuOpen && user && (
@@ -123,9 +125,13 @@ const NavBar = () => {
               onClick={() => setIsMobileMenuOpen(false)}
             >
               Profile
-              <span className="badge">New</span>
             </Link>
-            <button className="btn btn-ghost justify-start w-full">Settings</button>
+              <Link to="/connection/requests" 
+              className="btn btn-ghost justify-start w-full"
+              onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Requests
+              </Link>
             <button
               onClick={handleLogout}
               className="btn btn-ghost justify-start w-full"
