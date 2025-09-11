@@ -4,7 +4,7 @@ const ConnectionCard = ({ user }) => {
   if (!user) return null;
 
   return (
-    <div className="card card-bordered bg-base-100 shadow-md w-full max-w-sm transition-transform transform hover:scale-105">
+    <div className="card card-bordered bg-base-100 shadow-md w-full max-w-sm transition-transform m-3 transform hover:scale-105">
       <div className="card-body items-center text-center">
         {/* Profile Image */}
         <img

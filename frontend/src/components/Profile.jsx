@@ -4,10 +4,12 @@ import { addUser } from "../utils/userSlice";
 import { api } from "../utils/api";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
-import FeedCard from "./FeedCard"; // assuming you show user posts here
+import { setPosts } from "../utils/PostSlice";
+import FeedCard from "./FeedCard";
 
 const Profile = () => {
   const user = useSelector((store) => store.user);
+  const posts = useSelector((store) => store.post);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -25,8 +27,18 @@ const Profile = () => {
     }
   };
 
+  const fetchPost = async () => {
+    try {
+      const res = await api.get("/user/posts");
+      dispatch(setPosts(res.data));
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   useEffect(() => {
     if (!user) fetchUser();
+    fetchPost();
   }, []);
 
   if (!user) {
@@ -40,7 +52,7 @@ const Profile = () => {
   return (
     <div className="max-w-6xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* Left Sidebar (Profile Info) */}
-      <div className="lg:col-span-1">
+      <div className="lg:col-span-1 mt-16">
         <ProfileCard user={user} />
       </div>
 
@@ -61,29 +73,14 @@ const Profile = () => {
             About
           </a>
         </div>
-
         {/* Example posts section */}
-        <div className="space-y-4">
-          {/* Replace this with mapped FeedCards */}
-          <FeedCard
-            feed={{
-              title: "Just finished a new project 🚀",
-              content:
-                "Built a MERN stack app for real-time collaboration. Excited to share soon!",
-              createdAt: new Date(),
-              userId: user,
-            }}
-          />
-          <FeedCard
-            feed={{
-              title: "Learning Next.js",
-              content:
-                "Diving deeper into Next.js 14 app router and server actions!",
-              createdAt: new Date(),
-              userId: user,
-            }}
-          />
-        </div>
+        {posts.length > 0 && (
+          <div className="flex flex-col items-center mt-6">
+            {posts.map((post) => (
+              <FeedCard key={post._id} feed={post} />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

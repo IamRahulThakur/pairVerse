@@ -23,7 +23,7 @@ const Connection = () => {
 
   return (
     <div>
-      < div className="flex flex-col items-center mt-6">
+      < div className="flex flex-col items-center mt-2">
         {connectionData && connectionData.map((res) => (
           <ConnectionCard 
           key={res._id} 

@@ -235,5 +235,20 @@ userRouter.get("/user/posts/feed", userAuth, async (req, res) => {
     }
 })
 
+userRouter.get("/user/posts", userAuth , async(req, res) => {
+    try {
+        const userId = req.user._id;
+
+        const feedData = await PostModel.find(
+           {userId: userId}
+        ).populate('userId', USER_SAFE_DATA).sort({ createdAt: -1 });
+
+        res.send(feedData);
+    }
+    catch(error) {
+        res.status(404).send(error.message);
+    }
+})
+
 
 export default userRouter;

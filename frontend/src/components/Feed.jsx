@@ -10,7 +10,6 @@ const Feed = () => {
 
   const getFeed = async () => {
     try {
-      if (feed) return;
       const response = await api.get("/user/posts/feed");
       dispatch(addFeed(response.data));
     } catch (err) {
