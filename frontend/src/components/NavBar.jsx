@@ -69,6 +69,14 @@ const NavBar = () => {
                       </Link>
                     </li>
                     <li>
+                      <Link
+                        to="/connection"
+                        className="justify-between"
+                      >
+                        Connections
+                      </Link>
+                    </li>
+                    <li>
                       <button onClick={handleLogout}>Logout</button>
                     </li>
                   </ul>
@@ -131,6 +139,12 @@ const NavBar = () => {
               onClick={() => setIsMobileMenuOpen(false)}
               >
                 Requests
+              </Link>
+              <Link to="/connection" 
+              className="btn btn-ghost justify-start w-full"
+              onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Connections
               </Link>
             <button
               onClick={handleLogout}

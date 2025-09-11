@@ -10,6 +10,7 @@ import Signup from "./components/Signup";
 import Footer from "./components/Footer";
 import EditProfile from "./components/EditProfile";
 import ConnectionRequests from "./components/ConnectionRequests";
+import Connection from "./components/Connection";
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
               <Route path="/profile" element={<Profile />} />
               <Route path="/profile/edit" element={<EditProfile/>} />
               <Route path="/connection/requests" element={<ConnectionRequests/>} />
+              <Route path="/connection" element={<Connection/>} />
               
               <Route path="/footer" element={<Footer />} />
             </Route>
