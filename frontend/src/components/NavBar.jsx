@@ -5,6 +5,7 @@ import { api } from "../utils/api";
 import { useDispatch } from "react-redux";
 import { removeUser } from "../utils/userSlice";
 import toast, { Toaster } from "react-hot-toast";
+import ThemeSwitcher from "./ThemeSwitcher";
 
 const NavBar = () => {
   const user = useSelector((store) => store.user);
@@ -33,6 +34,30 @@ const NavBar = () => {
             <Link to="feed" className="btn btn-ghost text-xl">
               PairVerse
             </Link>
+          </div>
+          <div className="dropdown dropdown-end">
+            <label tabIndex={0} className="btn btn-ghost btn-circle">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6 text-gray-700"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 4v16m8-8H4"
+                />
+              </svg>
+            </label>
+            <div
+              tabIndex={0}
+              className="dropdown-content mt-3 p-2 shadow-lg bg-base-100 rounded-box w-56 max-h-64 overflow-y-auto"
+            >
+              <ThemeSwitcher />
+            </div>
           </div>
 
           {/* Desktop Menu */}
@@ -69,10 +94,7 @@ const NavBar = () => {
                       </Link>
                     </li>
                     <li>
-                      <Link
-                        to="/connection"
-                        className="justify-between"
-                      >
+                      <Link to="/connection" className="justify-between">
                         Connections
                       </Link>
                     </li>
@@ -134,18 +156,20 @@ const NavBar = () => {
             >
               Profile
             </Link>
-              <Link to="/connection/requests" 
+            <Link
+              to="/connection/requests"
               className="btn btn-ghost justify-start w-full"
               onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Requests
-              </Link>
-              <Link to="/connection" 
+            >
+              Requests
+            </Link>
+            <Link
+              to="/connection"
               className="btn btn-ghost justify-start w-full"
               onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Connections
-              </Link>
+            >
+              Connections
+            </Link>
             <button
               onClick={handleLogout}
               className="btn btn-ghost justify-start w-full"
