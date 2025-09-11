@@ -22,10 +22,10 @@ const Login = () => {
       const response = await api.post(
         "/login", 
         { emailId, password},
-    );
-    dispatch(addUser(response.data));
-    toast.success("logged in successfully")
-    return navigate("/feed");
+      );
+      dispatch(addUser(response.data));
+      toast.success("logged in successfully")
+      return navigate("/feed");
     } catch (error) {
       setErrorMessage(error?.response?.data.message || "Login failed. Please try again");
       return;

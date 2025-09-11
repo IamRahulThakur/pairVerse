@@ -24,7 +24,7 @@ const Signup = () => {
         }
       const response = await api.post("/signup", { emailId, password });
       console.log("Signup successful:", response.data);
-      dispatch(addUser(response));  r
+      dispatch(addUser(response));
       return navigate("/profile");
     } catch (error) {
       console.error("Signup failed:", error);

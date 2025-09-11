@@ -2,7 +2,7 @@ import { useSelector, useDispatch } from "react-redux";
 import ProfileCard from "./ProfileCard";
 import { addUser } from "../utils/userSlice";
 import { api } from "../utils/api";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { setPosts } from "../utils/PostSlice";
 import FeedCard from "./FeedCard";
@@ -60,9 +60,9 @@ const Profile = () => {
       <div className="lg:col-span-2 space-y-6">
         {/* Tabs like LinkedIn */}
         <div role="tablist" className="tabs tabs-bordered">
-          <a role="tab" className="tab tab-active">
-            Posts
-          </a>
+          <Link to="/user/createpost" role="tab" className="tab tab-active">
+            Post
+          </Link>
           <a role="tab" className="tab">
             Projects
           </a>

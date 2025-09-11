@@ -5,7 +5,7 @@ import toast, { Toaster } from "react-hot-toast";
 import ProfileCard from "./ProfileCard";
 import { useDispatch } from "react-redux";
 import { addUser } from "../utils/userSlice";
-import { Navigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 
 // Inside your component
 
@@ -13,6 +13,7 @@ import { Navigate } from "react-router-dom";
 const EditProfile = () => {
   const profile = useSelector((store) => store.user);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const fetchUser = async () => {
       if(profile) return;
@@ -87,6 +88,7 @@ const EditProfile = () => {
         Github: github,
       });
       toast.success("Profile updated successfully!");
+      return navigate("/profile");
     } catch (error) {
       if (error.response && error.response.status === 409) {
         const { field, message } = error.response.data;

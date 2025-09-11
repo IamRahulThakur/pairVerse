@@ -11,6 +11,7 @@ import Footer from "./components/Footer";
 import EditProfile from "./components/EditProfile";
 import ConnectionRequests from "./components/ConnectionRequests";
 import Connection from "./components/Connection";
+import CreatePost from "./components/CreatePost";
 
 function App() {
   return (
@@ -26,7 +27,7 @@ function App() {
               <Route path="/profile/edit" element={<EditProfile/>} />
               <Route path="/connection/requests" element={<ConnectionRequests/>} />
               <Route path="/connection" element={<Connection/>} />
-              
+              <Route path="/user/createpost" element={<CreatePost/>} />
               <Route path="/footer" element={<Footer />} />
             </Route>
           </Routes>
