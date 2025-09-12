@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect , useRef } from "react";
 import { useSelector } from "react-redux";
 import { api } from "../utils/api";
 import toast, { Toaster } from "react-hot-toast";
@@ -14,6 +14,7 @@ const EditProfile = () => {
   const profile = useSelector((store) => store.user);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const usernameRef = useRef(null); 
 
   const fetchUser = async () => {
       if(profile) return;
@@ -92,7 +93,11 @@ const EditProfile = () => {
     } catch (error) {
       if (error.response && error.response.status === 409) {
         const { field, message } = error.response.data;
-        if (field === "username") setUsernameError(message);
+        if (field === "username") {
+          setUsernameError(message);
+          usernameRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+          usernameRef.current?.focus();
+        }
         return;
       } else {
         console.log(error.response ? error.response.data : error.message);
@@ -154,11 +159,11 @@ const EditProfile = () => {
               <p className="text-red-500 text-sm">{usernameError}</p>
             )}
             <input
+              ref={usernameRef}
               type="text"
               value={username}
               onChange={(e) => {
                 setUsername(e.target.value);
-                setUsernameError("")
                 }}
               className="input input-bordered w-full"
             />
