@@ -5,7 +5,8 @@ import { api } from "../utils/api";
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { setPosts } from "../utils/PostSlice";
-import FeedCard from "./FeedCard";
+import UserPostCard from "./UserPosts";
+import toast , { Toaster }  from "react-hot-toast";
 
 const Profile = () => {
   const user = useSelector((store) => store.user);
@@ -14,7 +15,6 @@ const Profile = () => {
   const navigate = useNavigate();
 
   const fetchUser = async () => {
-    if (user) return;
     try {
       const res = await api.get("/profile");
       dispatch(addUser(res.data));
@@ -36,10 +36,21 @@ const Profile = () => {
     }
   };
 
+  const handleDelete = async (id) => {
+    try {
+      await api.delete(`user/posts/delete/${id}`);
+      toast.success("Post Deleted Successfully");
+      navigate('/profile');
+    }
+    catch (error) {
+      console.log(error.message);
+    }
+  }
+
   useEffect(() => {
-    if (!user) fetchUser();
+    fetchUser();
     fetchPost();
-  }, []);
+  }, [handleDelete]);
 
   if (!user) {
     return (
@@ -77,7 +88,11 @@ const Profile = () => {
         {posts.length > 0 && (
           <div className="flex flex-col items-center mt-6">
             {posts.map((post) => (
-              <FeedCard key={post._id} feed={post} />
+              <UserPostCard 
+              key={post._id} 
+              post={post} 
+              onDelete={() => handleDelete(post._id)}
+              />
             ))}
           </div>
         )}
