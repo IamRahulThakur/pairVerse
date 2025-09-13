@@ -4,6 +4,7 @@ import { api } from "../utils/api";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { addUser } from "../utils/userSlice";
+import toast , { Toaster }  from "react-hot-toast";
 
 const Signup = () => {
   const [emailId, setEmailId] = useState("");
@@ -23,11 +24,12 @@ const Signup = () => {
           return;
         }
       const response = await api.post("/signup", { emailId, password });
-      console.log("Signup successful:", response.data);
-      dispatch(addUser(response));
-      return navigate("/profile");
+      toast.success("User Created Successfully");
+      dispatch(addUser(response.data));
+      return navigate("/profile/edit");
     } catch (error) {
-      console.error("Signup failed:", error);
+      const backendError = error.response?.data?.error || "Something went wrong";
+      toast.error(backendError);
     }
   };
 

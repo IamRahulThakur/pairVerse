@@ -1,4 +1,4 @@
-import { useState, useEffect , useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSelector } from "react-redux";
 import { api } from "../utils/api";
 import toast, { Toaster } from "react-hot-toast";
@@ -7,34 +7,12 @@ import { useDispatch } from "react-redux";
 import { addUser } from "../utils/userSlice";
 import { Navigate, useNavigate } from "react-router-dom";
 
-// Inside your component
-
-
 const EditProfile = () => {
   const profile = useSelector((store) => store.user);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const usernameRef = useRef(null); 
+  const usernameRef = useRef(null);
 
-  const fetchUser = async () => {
-      if(profile) return;
-      try {
-        const res = await api.get("/profile");
-        dispatch(addUser(res.data));
-      } catch (error) {
-        if(error.status === 401) {
-          Navigate("/login");
-        }
-        else {
-          console.error("Error fetching user data:", error);
-        }
-      }
-    }
-  
-    useEffect(() => {
-      if(!profile)
-        fetchUser();
-    }, []);
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -51,6 +29,31 @@ const EditProfile = () => {
   const [linkedIn, setLinkedIn] = useState("");
   const [github, setGithub] = useState("");
   const [emailId, setEmailId] = useState("");
+  const [isAgeLocked , setIsAgeLocked] = useState(false);
+
+
+  const fetchUser = async () => {
+    try {
+      const res = await api.get("/profile");
+      if (res.data.age) {
+        setAge(res.data.age);
+        setIsAgeLocked(true); 
+      }
+      dispatch(addUser(res.data));
+    } catch (error) {
+      if (error.status === 401) {
+        Navigate("/login");
+      } else {
+        console.error("Error fetching user data:", error);
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (!profile) fetchUser();
+  }, []);
+
+
 
   useEffect(() => {
     if (profile) {
@@ -81,6 +84,7 @@ const EditProfile = () => {
         gender,
         photourl,
         bio,
+        age,
         domain,
         techStack,
         experienceLevel,
@@ -95,7 +99,10 @@ const EditProfile = () => {
         const { field, message } = error.response.data;
         if (field === "username") {
           setUsernameError(message);
-          usernameRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+          usernameRef.current?.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+          });
           usernameRef.current?.focus();
         }
         return;
@@ -116,12 +123,11 @@ const EditProfile = () => {
     setTechStack(techStack.filter((_, i) => i !== index));
 
   return (
-      <div className="flex justify-center items-center min-h-screen bg-base-200 p-4">
+    <div className="flex justify-center items-center min-h-screen bg-base-200 p-4">
       <div className="card card-bordered bg-base-100 w-full max-w-lg shadow-xl">
         <div className="card-body">
           <h2 className="card-title">Edit Profile</h2>
           <form className="flex flex-col gap-4" onSubmit={handleUpdate}>
-
             {/* Email */}
             <label className="font-medium">Email</label>
             <input
@@ -164,11 +170,11 @@ const EditProfile = () => {
               value={username}
               onChange={(e) => {
                 setUsername(e.target.value);
-                }}
+              }}
               className="input input-bordered w-full"
             />
 
-                <label className="font-medium">Photo URL</label>
+            <label className="font-medium">Photo URL</label>
             <input
               type="url"
               value={photourl}
@@ -180,7 +186,8 @@ const EditProfile = () => {
             <input
               type="number"
               value={age}
-              disabled
+              disabled={isAgeLocked}
+              onChange={(e) => setAge(e.target.value)}
               className="input input-bordered w-full"
             />
 

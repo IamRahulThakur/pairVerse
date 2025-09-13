@@ -37,7 +37,7 @@ const userSchema = new mongoose.Schema({
     },
     photourl: {
         type: String,
-        default: "https://images.app.goo.gl/fx79WosVnmDFnnLk8",
+        default: "https://ongcvidesh.com/wp-content/uploads/2019/08/dummy-image.jpg",
     },
     bio: {
         type: String,
@@ -65,7 +65,7 @@ const userSchema = new mongoose.Schema({
     linkedIn: {
         type: String,
         validate(value) {
-            if(!value.startsWith("https://www.linkedin.com/")) {
+            if(value && !value.startsWith("https://www.linkedin.com/")) {
                 throw new Error("Enter Valid LinkedIn URL")
             }
         }

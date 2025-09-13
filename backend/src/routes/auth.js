@@ -22,11 +22,11 @@ authRouter.post("/signup", async (req, res) => {
       emailId,
       password: hashedPassword,
     });
-    console.log("User Created: ", user);
     await user.save();
-    res.send({
-      message: "User created successfully",
-    });
+    const token = await user.getJwtToken();
+    // Add Token to cookie and send response back to user
+    res.cookie("token" , token);
+    res.send(user);
   } catch (error) {
     return res.status(400).send({ error: error.message });
   }

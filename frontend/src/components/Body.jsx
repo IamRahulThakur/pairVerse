@@ -13,6 +13,13 @@ const Body = () => {
 
   const fetchUser = async () => {
     if(userData) return;
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      Navigate("/login");
+      return;
+    }
+    
     try {
       const res = await api.get("/profile");
       dispatch(addUser(res.data));

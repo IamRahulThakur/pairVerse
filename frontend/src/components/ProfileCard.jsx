@@ -55,22 +55,22 @@ const ProfileCard = ({ user }) => {
         </div>
 
         <div className="mt-4 flex flex-wrap justify-center gap-6">
-          <a
+          {user.Github.trim() && (<a
             href={user.Github}
             target="_blank"
             rel="noopener noreferrer"
             className="text-base-content/70 hover:text-primary transition"
           >
             GitHub
-          </a>
-          <a
+          </a>)}
+          {user.linkedIn.trim() && (<a
             href={user.linkedIn}
             target="_blank"
             rel="noopener noreferrer"
             className="text-base-content/70 hover:text-primary transition"
           >
             LinkedIn
-          </a>
+          </a>)}
         </div>
 
         <div className="mt-4 text-center text-sm md:text-base text-base-content/60">

@@ -30,37 +30,6 @@ const FeedCard = ({ feed }) => {
         </h2>
         <p className="text-sm sm:text-base text-base-content/80">{feed.content}</p>
 
-        {/* Tech Stack Badges */}
-        <div className="flex flex-wrap gap-2 mt-2">
-          {userId.techStack.map((tech, idx) => (
-            <span
-              key={idx}
-              className="badge badge-outline badge-primary text-xs sm:text-sm"
-            >
-              {tech}
-            </span>
-          ))}
-        </div>
-
-        {/* Links */}
-        <div className="flex flex-wrap gap-3 mt-4">
-          <a
-            href={userId.Github}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn btn-sm btn-outline w-full sm:w-auto"
-          >
-            GitHub
-          </a>
-          <a
-            href={userId.linkedIn}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn btn-sm btn-info w-full sm:w-auto"
-          >
-            LinkedIn
-          </a>
-        </div>
       </div>
     </div>
   );
