@@ -40,6 +40,7 @@ const Profile = () => {
     try {
       await api.delete(`user/posts/delete/${id}`);
       toast.success("Post Deleted Successfully");
+      dispatch(setPosts(posts.filter((p) => p._id !== id)));
       navigate('/profile');
     }
     catch (error) {
@@ -50,7 +51,7 @@ const Profile = () => {
   useEffect(() => {
     fetchUser();
     fetchPost();
-  }, [handleDelete]);
+  }, []);
 
   if (!user) {
     return (

@@ -64,27 +64,28 @@ profileRouter.patch("/profile/updatePassword", userAuth, async (req, res) => {
 
   try {
     if (!password) {
-      throw new Error("Please Enter Your Current Password");
+      return res.status(400).json({ error: "Please Enter Your Current Password" });
     }
 
     const isPasswordValid = await req.user.validatePassword(password);
-    if (!isPasswordValid)
-      res.status(500).send("Please Enter Correct Password !! ");
+    if (!isPasswordValid) {
+      return res.status(400).json({ error: "Please Enter Correct Password !!" });
+    }
 
-    if (newPassword.toString() === password.toString())
-      res
-        .status(500)
-        .send("Updated Password can't be same as previous password");
+    if (newPassword.toString() === password.toString()) {
+      return res.status(400).json({ error: "Updated Password can't be same as previous password" });
+    }
 
-    if (newPassword.toString() !== confirmPassword.toString())
-      res.status(500).send("Confirm Password did not Match");
+    if (newPassword.toString() !== confirmPassword.toString()) {
+      return res.status(400).json({ error: "Confirm Password did not Match" });
+    }
 
-    if (!validator.isStrongPassword(newPassword))
-      res
-        .status(500)
-        .send(
-          "Password must be at least 8 characters long, include uppercase, lowercase, number, special character, and no spaces."
-        );
+    if (!validator.isStrongPassword(newPassword)) {
+      return res.status(400).json({
+        error:
+          "Password must be at least 8 characters long, include uppercase, lowercase, number, special character, and no spaces.",
+      });
+    }
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     await UserModel.findByIdAndUpdate(
@@ -92,16 +93,16 @@ profileRouter.patch("/profile/updatePassword", userAuth, async (req, res) => {
       { password: hashedPassword }
     );
 
-    // Clearing Old JWT token
+    // Clear old JWT
     res.clearCookie("token");
 
-    // Creating new Token for same user after updated password
+    // Create new JWT
     const newToken = await req.user.getJwtToken();
     res.cookie("token", newToken);
 
-    res.send("Password Updated Successfully !!! ");
+    return res.json({ message: "Password Updated Successfully !!!" });
   } catch (err) {
-    res.status(500).send({ error: err.message });
+    return res.status(500).json({ error: err.message || "Server Error" });
   }
 });
 
