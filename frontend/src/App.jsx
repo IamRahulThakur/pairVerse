@@ -13,6 +13,8 @@ import ConnectionRequests from "./components/ConnectionRequests";
 import Connection from "./components/Connection";
 import CreatePost from "./components/CreatePost";
 import ChangePassword from "./components/ChangePassword";
+import Chat from "./components/Chat";
+import NotFound from "./components/NotFound";
 
 function App() {
   return (
@@ -30,9 +32,11 @@ function App() {
               <Route path="/connection" element={<Connection/>} />
               <Route path="/user/createpost" element={<CreatePost/>} />
               <Route path="/changepassword" element={<ChangePassword/>} />
+              <Route path="/chat/:targetUserId" element={<Chat />} />
 
               <Route path="/footer" element={<Footer />} />
             </Route>
+          <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
       </Provider>

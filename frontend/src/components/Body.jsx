@@ -14,17 +14,12 @@ const Body = () => {
   const fetchUser = async () => {
     if(userData) return;
 
-    const token = localStorage.getItem("token");
-    if (!token) {
-      Navigate("/login");
-      return;
-    }
     
     try {
       const res = await api.get("/profile");
       dispatch(addUser(res.data));
     } catch (error) {
-      if(error.status === 401) {
+      if(error.response?.status === 401) {
         Navigate("/login");
       }
       else {

@@ -7,6 +7,8 @@ import requestRouter from "./routes/request.js";
 import userRouter from "./routes/user.js";
 import { startCleanNotifications } from "./cron/notificationCleanup.js";
 import cors from 'cors'
+import http from 'http'
+import initialiseSocket from "./utils/socket.js";
 
 
 export const app = express();
@@ -30,12 +32,14 @@ app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ error: "Something went wrong!" });
 });
- 
+
+const server = http.createServer(app);
+initialiseSocket(server);
 
 connectDB()
   .then(() => {
     console.log("Database connected");
-    app.listen(3000, () => console.log("Server running"));
+    server.listen(3000, () => console.log("Server running"));
     startCleanNotifications();
 
   })

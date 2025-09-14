@@ -1,7 +1,8 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 const ConnectionCard = ({ user }) => {
-  if (!user) return null;
+  if (!user) {return null};
 
   return (
     <div className="card card-bordered bg-base-100 shadow-md w-full max-w-sm transition-transform m-3 transform hover:scale-105">
@@ -17,18 +18,11 @@ const ConnectionCard = ({ user }) => {
         <h2 className="card-title mt-3 text-lg font-semibold">
           {user.firstName} {user.lastName}
         </h2>
+        {/*Chat Button */}
 
-        {/* Tech Stack */}
-        <div className="mt-3 flex flex-wrap gap-2 justify-center">
-          {user.techStack?.map((tech, i) => (
-            <span
-              key={i}
-              className="badge badge-outline px-3 py-1 text-xs font-medium"
-            >
-              {tech}
-            </span>
-          ))}
-        </div>
+        <Link to={"/chat/" + user._id}>
+        <button className="btn btn-active">Chat</button>
+        </Link>
       </div>
     </div>
   );
