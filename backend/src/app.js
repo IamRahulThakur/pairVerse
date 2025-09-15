@@ -9,6 +9,7 @@ import { startCleanNotifications } from "./cron/notificationCleanup.js";
 import cors from 'cors'
 import http from 'http'
 import initialiseSocket from "./utils/socket.js";
+import chatRouter from "./routes/chat.js";
 
 
 export const app = express();
@@ -27,6 +28,7 @@ app.use('/', authRouter);
 app.use('/', profileRouter);
 app.use('/', requestRouter);
 app.use('/', userRouter);
+app.use('/', chatRouter);
 
 app.use((err, req, res, next) => {
   console.error(err.stack);

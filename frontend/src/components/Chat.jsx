@@ -1,14 +1,52 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { createSocketConnection } from "../utils/socket";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { api } from "../utils/api";
+import { addUser } from "../utils/userSlice";
 
 const Chat = () => {
   const { targetUserId } = useParams();
   const user = useSelector((store) => store.user);
   const userId = user?._id;
   const [messages, setMessages] = useState([]);
-  const [newMessage, setNewMessage] = useState([]);
+  const [newMessage, setNewMessage] = useState("");
+  const dispatch = useDispatch();
+
+  const fetchUser = async () => {
+    try {
+      const res = await api.get("/profile");
+      dispatch(addUser(res.data));
+    } catch (error) {
+      console.log(error.message);
+    }
+  };
+
+  const fetchChatMessages = async () => {
+    const chat = await api.get(`/chat/${targetUserId}`);
+
+    const chatMessages =
+      chat?.data?.messages?.map((msg) => {
+        const istTime = new Date(msg?.createdAt).toLocaleString("en-IN", {
+          timeZone: "Asia/Kolkata",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: true,
+        });
+        return {
+          firstName: msg?.senderId.firstName,
+          text: msg?.text,
+          timestamp: istTime,
+        };
+      }) || []; // ✅ fallback to empty array
+
+    setMessages(chatMessages);
+  };
+
+  useEffect(() => {
+    fetchUser();
+    fetchChatMessages();
+  }, []);
 
   // Auto-scroll to bottom when new messages are added
   useEffect(() => {
@@ -53,6 +91,9 @@ const Chat = () => {
     setNewMessage("");
   };
 
+  if (!user) {
+    return <div>Loading...</div>;
+  }
   return (
     <div className="flex flex-col h-screen bg-base-200">
       {/* Chat Header */}
@@ -63,9 +104,14 @@ const Chat = () => {
 
       {/* Chat Messages */}
       <div className="flex-1 overflow-scroll p-5">
-        {messages.map((msg, index) => {
+        {messages?.map((msg, index) => {
           return (
-            <div key={index} className="chat chat-start">
+            <div
+              key={index}
+              className={`chat ${
+                user?.firstName === msg?.firstName ? "chat-end" : "chat-start"
+              }`}
+            >
               <div className="chat-header">
                 {msg.firstName}
                 <time className="text-xs opacity-50">{msg.istTime} </time>
