@@ -55,7 +55,7 @@ const ProfileCard = ({ user }) => {
         </div>
 
         <div className="mt-4 flex flex-wrap justify-center gap-6">
-          {user.Github.trim() && (<a
+          {(user?.Github || "").trim() && (<a
             href={user.Github}
             target="_blank"
             rel="noopener noreferrer"
@@ -63,7 +63,7 @@ const ProfileCard = ({ user }) => {
           >
             GitHub
           </a>)}
-          {user.linkedIn.trim() && (<a
+          {(user?.linkedIn || "").trim() && (<a
             href={user.linkedIn}
             target="_blank"
             rel="noopener noreferrer"
