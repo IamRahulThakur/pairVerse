@@ -1,10 +1,10 @@
 import React from "react";
 
 const RequestCard = ({ user , onAccept , onReject }) => {
-  const fromUserId = user.fromUserId;
+  const fromUserId = user?.fromUserId;
 
   return (
-    user.status == "interested" && (
+    user?.status == "interested" && (
     <>
     <div className="card card-bordered bg-base-100 shadow-md hover:shadow-lg transition-all">
       <div className="card-body flex flex-row items-center gap-4">

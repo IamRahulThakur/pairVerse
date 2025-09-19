@@ -47,19 +47,22 @@ const ConnectionRequests = () => {
   }, []);
 
   return (
-    <div>
-      < div className="flex flex-col items-center mt-6">
-        {requests && requests.map((req) => (
-          <RequestCard 
-          key={req._id} 
-          user={req} 
-          onAccept={() => handleAccept(req._id)} 
-          onReject={() => handleReject(req._id)} 
-          />
-        ))}
-        {!requests && <div>
-          No Requests
-        </div> }
+   <div>
+      <div className="flex flex-col items-center mt-6">
+        {/* Correctly check for empty array */}
+        {requests && requests.length > 0 ? (
+          requests.map((req) => (
+            <RequestCard 
+              key={req._id} 
+              // Passing the entire request object is fine, can be named more explicitly
+              user={req} 
+              onAccept={() => handleAccept(req._id)} 
+              onReject={() => handleReject(req._id)} 
+            />
+          ))
+        ) : (
+          <div>No New Connection Requests Found</div>
+        )}
       </div>
     </div>
   )

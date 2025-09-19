@@ -94,6 +94,14 @@ const NavBar = () => {
                       </Link>
                     </li>
                     <li>
+                      <Link
+                        to="/findfriends"
+                        className="justify-between"
+                      >
+                        Find Friends
+                      </Link>
+                    </li>
+                    <li>
                       <Link to="/connection" className="justify-between">
                         Connections
                       </Link>
@@ -174,6 +182,20 @@ const NavBar = () => {
               onClick={() => setIsMobileMenuOpen(false)}
             >
               Connections
+            </Link>
+            <Link
+              to="/findfriends"
+              className="btn btn-ghost justify-start w-full"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Find Friends
+            </Link>
+            <Link
+              to="/changepassword"
+              className="btn btn-ghost justify-start w-full"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Change Password
             </Link>
             <button
               onClick={handleLogout}
