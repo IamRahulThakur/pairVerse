@@ -15,6 +15,7 @@ import CreatePost from "./components/CreatePost";
 import ChangePassword from "./components/ChangePassword";
 import Chat from "./components/Chat";
 import NotFound from "./components/NotFound";
+import FindFriends from "./components/FindFriends";
 
 function App() {
   return (
@@ -33,6 +34,7 @@ function App() {
               <Route path="/user/createpost" element={<CreatePost/>} />
               <Route path="/changepassword" element={<ChangePassword/>} />
               <Route path="/chat/:targetUserId" element={<Chat />} />
+              <Route path="/findfriends" element={<FindFriends />} />
 
               <Route path="/footer" element={<Footer />} />
             </Route>

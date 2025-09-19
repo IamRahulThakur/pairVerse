@@ -4,6 +4,7 @@ import { addFeed } from "../utils/feedSlice";
 import { useEffect } from "react";
 import FeedCard from "./FeedCard";
 import { useNavigate } from "react-router-dom";
+import { addUser } from "../utils/userSlice";
 
 const Feed = () => {
   const feed = useSelector((store) => store.feed);
@@ -11,8 +12,20 @@ const Feed = () => {
   const dispatch = useDispatch();
   const Navigate = useNavigate();
 
+  const fetchUser = async () => {
+      try {
+        const res = await api.get("/profile");
+        dispatch(addUser(res.data));
+      } catch (error) {
+        if (error.status === 401) {
+          Navigate("/login");
+        } else {
+          console.error("Error fetching user data:", error);
+        }
+      }
+    };
+
   const getFeed = async () => {
-    if(!user) return Navigate("/login");
     try {
       const response = await api.get("/user/posts/feed");
       dispatch(addFeed(response.data));
@@ -22,6 +35,7 @@ const Feed = () => {
   };
 
   useEffect(() => {
+    fetchUser();
     getFeed();
   }, []);
 
