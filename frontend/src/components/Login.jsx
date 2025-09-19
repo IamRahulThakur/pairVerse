@@ -8,8 +8,9 @@ import { api } from "../utils/api";
 import toast, { Toaster } from "react-hot-toast";
 
 const Login = () => {
-  const [emailId, setEmailId] = useState("");
-  const [password, setPassword] = useState("");
+
+  const [emailId , setEmailId] = useState("sunny@gmail.com");
+  const [password , setPassword] = useState("Sunny@123");
   const [errorMessage, setErrorMessage] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const dispatch = useDispatch();
