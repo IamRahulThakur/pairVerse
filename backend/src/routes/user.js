@@ -309,6 +309,7 @@ userRouter.get("/user/findfriends", userAuth, async (req, res) => {
       },
       {
         $project: {
+          photourl: 1,
           firstName: 1,
           lastName: 1,
           techStack: 1,
