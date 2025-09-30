@@ -6,7 +6,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { setPosts } from "../utils/PostSlice";
 import UserPostCard from "./UserPosts";
-import toast , { Toaster }  from "react-hot-toast";
+import toast, { Toaster } from "react-hot-toast";
 
 const Profile = () => {
   const user = useSelector((store) => store.user);
@@ -41,12 +41,11 @@ const Profile = () => {
       await api.delete(`user/posts/delete/${id}`);
       toast.success("Post Deleted Successfully");
       dispatch(setPosts(posts.filter((p) => p._id !== id)));
-      navigate('/profile');
-    }
-    catch (error) {
+      navigate("/profile");
+    } catch (error) {
       console.log(error.message);
     }
-  }
+  };
 
   useEffect(() => {
     fetchUser();
@@ -75,24 +74,18 @@ const Profile = () => {
           <Link to="/user/createpost" role="tab" className="tab tab-active">
             Post
           </Link>
-          <a role="tab" className="tab">
-            Projects
-          </a>
-          <a role="tab" className="tab">
-            Connections
-          </a>
-          <a role="tab" className="tab">
-            About
-          </a>
+          <Link to="/connection" role="tab" className="tab tab-active">
+            Conection
+          </Link>
         </div>
         {/* Example posts section */}
         {posts.length > 0 && (
           <div className="flex flex-col items-center mt-6">
             {posts.map((post) => (
-              <UserPostCard 
-              key={post._id} 
-              post={post} 
-              onDelete={() => handleDelete(post._id)}
+              <UserPostCard
+                key={post._id}
+                post={post}
+                onDelete={() => handleDelete(post._id)}
               />
             ))}
           </div>

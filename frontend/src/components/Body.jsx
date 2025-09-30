@@ -4,6 +4,8 @@ import NavBar from './NavBar';
 import { api } from '../utils/api';
 import { useDispatch, useSelector } from 'react-redux';
 import { addUser } from '../utils/userSlice';
+import ThemeSwitcher from './ThemeSwitcher';
+import FabMenu from './ThemeSwitcher';
 
 const Body = () => {
   const dispatch = useDispatch();
@@ -38,7 +40,7 @@ const Body = () => {
     <div>
       <NavBar />
       <Outlet />
-      {/* You won't have a Footer here if Outlet renders it */}
+      <FabMenu/>
     </div>
   );
 };
