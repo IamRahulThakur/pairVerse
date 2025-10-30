@@ -74,7 +74,6 @@ userRouter.get("/user/notifications", userAuth, async (req, res) => {
     const notifications = await notificationModel
       .find({
         toUserId: req.user._id,
-        status: "unread",
       })
       .skip(skip)
       .limit(limit);
@@ -83,7 +82,13 @@ userRouter.get("/user/notifications", userAuth, async (req, res) => {
       return res.status(200).send("No unread notifications");
     }
 
-    res.send(notifications.map((notification) => notification.title));
+    res.json(
+      notifications.map((notification) => ({
+        _id: notification._id,
+        title: notification.title,
+        status: notification.status,
+      }))
+    );
   } catch (err) {
     res.status(500).send({ error: err.message });
   }
@@ -132,6 +137,7 @@ userRouter.patch(
   }
 );
 
+// Mark All Notifications as Read
 userRouter.patch(
   "/user/notifications/mark-all-read",
   userAuth,
@@ -261,21 +267,20 @@ userRouter.get("/user/findfriends", userAuth, async (req, res) => {
     // Step 1: Get current user
     const baseUser = await UserModel.findById(userId).lean();
     if (!baseUser || !baseUser.techStack) {
-      return res.status(404).send({ error: "User not found or no tech stack available" });
+      return res
+        .status(404)
+        .send({ error: "User not found or no tech stack available" });
     }
 
     const userTechStack = baseUser.techStack;
 
     // Step 2: Get all users who already have a connection request with this user
     const existingConnections = await ConnectionRequestModel.find({
-      $or: [
-        { fromUserId: userId },
-        { toUserId: userId }
-      ]
+      $or: [{ fromUserId: userId }, { toUserId: userId }],
     }).lean();
 
     // Collect IDs of users that should be excluded
-    const excludeUserIds = existingConnections.map(conn =>
+    const excludeUserIds = existingConnections.map((conn) =>
       conn.fromUserId.toString() === userId.toString()
         ? conn.toUserId
         : conn.fromUserId
@@ -285,9 +290,9 @@ userRouter.get("/user/findfriends", userAuth, async (req, res) => {
     const matches = await UserModel.aggregate([
       {
         $match: {
-          _id: { 
-            $ne: baseUser._id,           // exclude self
-            $nin: excludeUserIds        // exclude existing/pending connections
+          _id: {
+            $ne: baseUser._id, // exclude self
+            $nin: excludeUserIds, // exclude existing/pending connections
           },
         },
       },
@@ -325,6 +330,5 @@ userRouter.get("/user/findfriends", userAuth, async (req, res) => {
     res.status(500).send({ error: err.message });
   }
 });
-
 
 export default userRouter;

@@ -70,6 +70,12 @@ const NavBar = () => {
                 >
                   Requests
                 </Link>
+                <Link
+                  to="/notifications"
+                  className="px-4 py-2 rounded-lg font-medium hover:bg-base-200 transition-colors"
+                >
+                  Notifications
+                </Link>
               </div>
             )}
           </div>
@@ -241,6 +247,19 @@ const NavBar = () => {
                 </svg>
                 Requests
               </Link>
+
+              <Link
+                to="/notifications"
+                className="flex items-center gap-3 p-3 rounded-lg hover:bg-base-200 transition-colors relative"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5zM8.5 14.5a2.5 2.5 0 010-5 2.5 2.5 0 010 5z" />
+                </svg>
+                Notifications
+              </Link>
+
+
             </div>
 
             {/* Account Settings */}

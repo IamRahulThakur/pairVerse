@@ -16,6 +16,7 @@ import ChangePassword from "./components/ChangePassword";
 import Chat from "./components/Chat";
 import NotFound from "./components/NotFound";
 import FindFriends from "./components/FindFriends";
+import Notification from "./components/Notification";
 
 function App() {
   return (
@@ -35,7 +36,7 @@ function App() {
               <Route path="/changepassword" element={<ChangePassword/>} />
               <Route path="/chat/:targetUserId" element={<Chat />} />
               <Route path="/findfriends" element={<FindFriends />} />
-
+              <Route path="/notifications" element={<Notification/>}/>
               <Route path="/footer" element={<Footer />} />
             </Route>
           <Route path="*" element={<NotFound />} />
