@@ -32,6 +32,10 @@ profileRouter.patch("/profile/edit", userAuth, async (req, res) => {
   try {
     const data = req.body;
 
+    if(data.techStack) {
+      data.techStack = data.techStack.map(item => item.trim());
+    }
+    
     if (data.emailId || data.password) {
       return res.status(422).send("Invalid Updates");
     }
