@@ -1,3 +1,4 @@
+// Body.jsx
 import React, { useEffect } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import NavBar from './NavBar';
@@ -7,12 +8,10 @@ import { addUser } from '../utils/userSlice';
 
 const Body = () => {
   const dispatch = useDispatch();
-  const navigate = useNavigate(); // Standard practice to name it lowercase
+  const navigate = useNavigate();
   const userData = useSelector((store) => store.user);
- 
 
   useEffect(() => {
-    // This function is only responsible for fetching and dispatching
     const fetchUser = async () => {
       try {
         const res = await api.get("/profile");
@@ -26,19 +25,17 @@ const Body = () => {
       }
     };
 
-    // We only call the function if we don't already have the user data.
     if (!userData) {
       fetchUser();
     }
-    
-    // The empty dependency array ensures this effect runs only once on mount.
-  }, []); // Dependencies: none in this case, but good to be mindful
+  }, []);
 
   return (
-    <div>
+    <div className="min-h-screen bg-gray-50">
       <NavBar />
-      <Outlet />
-      {/* You won't have a Footer here if Outlet renders it */}
+      <main className="text-gray-900 pt-16">
+        <Outlet />
+      </main>
     </div>
   );
 };

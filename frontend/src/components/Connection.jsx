@@ -1,6 +1,7 @@
+// Connection.jsx
 import React, { useEffect } from 'react'
 import { api } from '../utils/api'
-import {addConnection} from "../utils/connectionSlice"
+import { addConnection } from "../utils/connectionSlice"
 import { useDispatch, useSelector } from 'react-redux';
 import ConnectionCard from './ConnectionCard';
 
@@ -22,20 +23,20 @@ const Connection = () => {
   }, [])
 
   return (
-    <div>
-      < div className="flex flex-col items-center mt-2">
+    <div className="max-w-6xl mx-auto p-6">
+      <h1 className="text-2xl font-bold text-gray-900 mb-6">Connections</h1>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {connectionData && connectionData.map((res) => (
-          <ConnectionCard 
-          key={res._id} 
-          user={res} 
-          />
+          <ConnectionCard key={res._id} user={res} />
         ))}
-        {!connectionData && <div>
-          No Connections
-        </div> }
+        {!connectionData?.length && (
+          <div className="col-span-full text-center py-12">
+            <p className="text-gray-500 text-lg">No Connections</p>
+          </div>
+        )}
       </div>
     </div>
   )
 }
 
-export default Connection
+export default Connection;

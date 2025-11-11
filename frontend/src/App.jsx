@@ -15,7 +15,10 @@ import CreatePost from "./components/CreatePost";
 import ChangePassword from "./components/ChangePassword";
 import Chat from "./components/Chat";
 import NotFound from "./components/NotFound";
-import FindFriends from "./components/FindFriends";
+import FindFriends from "./components/MatchingPeers";
+import SearchUsers from "./components/SearchUsers";
+import UserProfile from "./components/UserProfile";
+import MatchingPeers from "./components/MatchingPeers";
 
 function App() {
   return (
@@ -34,8 +37,9 @@ function App() {
               <Route path="/user/createpost" element={<CreatePost/>} />
               <Route path="/changepassword" element={<ChangePassword/>} />
               <Route path="/chat/:targetUserId" element={<Chat />} />
-              <Route path="/findfriends" element={<FindFriends />} />
-
+              <Route path="/matchingpeers" element={<MatchingPeers />} />
+              <Route path="/search" element={<SearchUsers />} />
+              <Route path="/profile/:userId" element={<UserProfile />} />
               <Route path="/footer" element={<Footer />} />
             </Route>
           <Route path="*" element={<NotFound />} />

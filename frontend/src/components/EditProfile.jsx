@@ -1,18 +1,17 @@
+// EditProfile.jsx
 import { useState, useEffect, useRef } from "react";
 import { useSelector } from "react-redux";
 import { api } from "../utils/api";
-import toast, { Toaster } from "react-hot-toast";
-import ProfileCard from "./ProfileCard";
+import toast from "react-hot-toast";
 import { useDispatch } from "react-redux";
 import { addUser } from "../utils/userSlice";
-import { Navigate, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const EditProfile = () => {
   const profile = useSelector((store) => store.user);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const usernameRef = useRef(null);
-
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -29,20 +28,19 @@ const EditProfile = () => {
   const [linkedIn, setLinkedIn] = useState("");
   const [github, setGithub] = useState("");
   const [emailId, setEmailId] = useState("");
-  const [isAgeLocked , setIsAgeLocked] = useState(false);
-
+  const [isAgeLocked, setIsAgeLocked] = useState(false);
 
   const fetchUser = async () => {
     try {
       const res = await api.get("/profile");
       if (res.data.age) {
         setAge(res.data.age);
-        setIsAgeLocked(true); 
+        setIsAgeLocked(true);
       }
       dispatch(addUser(res.data));
     } catch (error) {
       if (error.status === 401) {
-        Navigate("/login");
+        navigate("/login");
       } else {
         console.error("Error fetching user data:", error);
       }
@@ -52,8 +50,6 @@ const EditProfile = () => {
   useEffect(() => {
     if (!profile) fetchUser();
   }, []);
-
-
 
   useEffect(() => {
     if (profile) {
@@ -123,178 +119,207 @@ const EditProfile = () => {
     setTechStack(techStack.filter((_, i) => i !== index));
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-base-200 p-4">
-      <div className="card card-bordered bg-base-100 w-full max-w-lg shadow-xl">
-        <div className="card-body">
-          <h2 className="card-title">Edit Profile</h2>
-          <form className="flex flex-col gap-4" onSubmit={handleUpdate}>
-            {/* Email */}
-            <label className="font-medium">Email</label>
+    <div className="min-h-screen bg-gray-50 py-8 px-4">
+      <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-lg p-8">
+
+        <button className="cursor-pointer px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200"
+        onClick={() => navigate("/profile")} >
+          Back
+        </button>
+        <h2 className="text-2xl font-bold text-gray-900 mb-6">Edit Profile</h2>
+        <form className="space-y-6" onSubmit={handleUpdate}>
+          {/* Email */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
             <input
               type="email"
               value={emailId}
               disabled
-              className="input input-bordered w-full"
+              className=" w-full px-4 py-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-600"
             />
+          </div>
 
-            {/* Name */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="font-medium">First Name</label>
-                <input
-                  type="text"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  className="input input-bordered w-full"
-                />
-              </div>
-              <div>
-                <label className="font-medium">Last Name</label>
-                <input
-                  type="text"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  className="input input-bordered w-full"
-                />
-              </div>
+          {/* Name */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
+              <input
+                type="text"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                className="text-gray-900 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+              />
             </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
+              <input
+                type="text"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                className="text-gray-900 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+              />
+            </div>
+          </div>
 
-            {/* Username */}
-            <label className="font-medium">Username</label>
+          {/* Username */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Username</label>
             {usernameError && (
-              <p className="text-red-500 text-sm">{usernameError}</p>
+              <p className="text-red-600 text-sm mb-2">{usernameError}</p>
             )}
             <input
               ref={usernameRef}
               type="text"
               value={username}
-              onChange={(e) => {
-                setUsername(e.target.value);
-              }}
-              className="input input-bordered w-full"
+              onChange={(e) => setUsername(e.target.value)}
+              className="text-gray-900 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
             />
+          </div>
 
-            <label className="font-medium">Photo URL</label>
+          {/* Photo URL */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Photo URL</label>
             <input
               type="url"
               value={photourl}
               onChange={(e) => setPhotoUrl(e.target.value)}
-              className="input input-bordered w-full"
+              className="text-gray-900 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
             />
-            {/* Age */}
-            <label className="font-medium">Age</label>
+          </div>
+
+          {/* Age */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Age</label>
             <input
               type="number"
               value={age}
               disabled={isAgeLocked}
               onChange={(e) => setAge(e.target.value)}
-              className="input input-bordered w-full"
+              className="text-gray-900 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition disabled:bg-gray-100"
             />
+          </div>
 
-            {/* Gender */}
-            <label className="font-medium">Gender</label>
+          {/* Gender */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Gender</label>
             <select
               value={gender}
               onChange={(e) => setGender(e.target.value)}
-              className="select select-bordered w-full"
+              className="text-gray-900 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
             >
               <option value="">Select Gender</option>
-              <option value="male">male</option>
-              <option value="female">female</option>
-              <option value="other">other</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="other">Other</option>
             </select>
+          </div>
 
-            {/* Bio */}
-            <label className="font-medium">Bio</label>
+          {/* Bio */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Bio</label>
             <textarea
               value={bio}
               onChange={(e) => setBio(e.target.value)}
-              className="textarea textarea-bordered w-full"
+              rows="3"
+              className="text-gray-900 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition resize-none"
             />
+          </div>
 
-            {/* Domain */}
-            <label className="font-medium">Domain</label>
+          {/* Domain */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Domain</label>
             <input
               type="text"
               value={domain}
               onChange={(e) => setDomain(e.target.value)}
-              className="input input-bordered w-full"
+              className="text-gray-900 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
             />
+          </div>
 
-            {/* Tech Stack */}
-            <div>
-              <label className="font-medium">Tech Stack</label>
-              {techStack.map((tech, index) => (
-                <div key={index} className="flex gap-2 mb-2">
-                  <input
-                    type="text"
-                    value={tech}
-                    onChange={(e) => handleTechChange(e, index)}
-                    className="input input-bordered flex-1"
-                  />
-                  <button
-                    type="button"
-                    className="btn btn-error btn-sm"
-                    onClick={() => removeTech(index)}
-                  >
-                    ✕
-                  </button>
-                </div>
-              ))}
-              <button
-                type="button"
-                className="btn btn-sm btn-outline mt-2"
-                onClick={addTech}
-              >
-                + Add Tech
-              </button>
-            </div>
+          {/* Tech Stack */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Tech Stack</label>
+            {techStack.map((tech, index) => (
+              <div key={index} className="flex gap-2 mb-2">
+                <input
+                  type="text"
+                  value={tech}
+                  onChange={(e) => handleTechChange(e, index)}
+                  className="text-gray-900 flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                />
+                <button
+                  type="button"
+                  className="px-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200"
+                  onClick={() => removeTech(index)}
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+            <button
+              type="button"
+              className=" mt-2 px-4 py-2 border-2 border-dashed border-gray-300 text-gray-600 rounded-lg hover:border-gray-400 transition-colors duration-200"
+              onClick={addTech}
+            >
+              + Add Tech
+            </button>
+          </div>
 
-            {/* Experience Level */}
-            <label className="font-medium">Experience Level</label>
+          {/* Experience Level */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Experience Level</label>
             <select
               value={experienceLevel}
               onChange={(e) => setExperienceLevel(e.target.value)}
-              className="select select-bordered w-full"
+              className="text-gray-900 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
             >
               <option value="">Select Experience Level</option>
-              <option value="beginner">beginner</option>
-              <option value="intermediate">intermediate</option>
-              <option value="advanced">advanced</option>
+              <option value="beginner">Beginner</option>
+              <option value="intermediate">Intermediate</option>
+              <option value="advanced">Advanced</option>
             </select>
+          </div>
 
-            {/* Timezone */}
-            <label className="font-medium">Timezone</label>
+          {/* Timezone */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Timezone</label>
             <input
               type="text"
               value={timezone}
               onChange={(e) => setTimezone(e.target.value)}
-              className="input input-bordered w-full"
+              className="text-gray-900 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
             />
+          </div>
 
-            {/* LinkedIn */}
-            <label className="font-medium">LinkedIn</label>
+          {/* LinkedIn */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">LinkedIn</label>
             <input
               type="url"
               value={linkedIn}
               onChange={(e) => setLinkedIn(e.target.value)}
-              className="input input-bordered w-full"
+              className="text-gray-900 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
             />
+          </div>
 
-            {/* GitHub */}
-            <label className="font-medium">GitHub</label>
+          {/* GitHub */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">GitHub</label>
             <input
               type="url"
               value={github}
               onChange={(e) => setGithub(e.target.value)}
-              className="input input-bordered w-full"
+              className="text-gray-900 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
             />
+          </div>
 
-            <button type="submit" className="btn btn-primary w-full mt-4">
-              Update Profile
-            </button>
-          </form>
-        </div>
+          <button
+            type="submit"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium transition-colors duration-200"
+          >
+            Update Profile
+          </button>
+        </form>
       </div>
     </div>
   );

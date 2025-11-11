@@ -10,6 +10,7 @@ const userRouter = express.Router();
 const USER_SAFE_DATA = [
   "firstName",
   "lastName",
+  "username",
   "gender",
   "photourl",
   "techStack",
@@ -254,7 +255,7 @@ userRouter.get("/user/posts", userAuth, async (req, res) => {
   }
 });
 
-userRouter.get("/user/findfriends", userAuth, async (req, res) => {
+userRouter.get("/user/matchingpeers", userAuth, async (req, res) => {
   try {
     const userId = req.user._id;
 
@@ -309,6 +310,7 @@ userRouter.get("/user/findfriends", userAuth, async (req, res) => {
       },
       {
         $project: {
+          photourl: 1,
           firstName: 1,
           lastName: 1,
           techStack: 1,
@@ -325,5 +327,26 @@ userRouter.get("/user/findfriends", userAuth, async (req, res) => {
   }
 });
 
+userRouter.get("/search/:username", userAuth, async (req, res) => {
+  try {
+    const { username } = req.params;
+    
+    if(username == req.user.username){
+      return res.status(200).json([]);
+    }
+
+    const regex = new RegExp(username, 'i'); // Case-insensitive search
+    
+    const users = await UserModel.find({
+      username: { $regex: regex }
+    }).select(USER_SAFE_DATA);
+
+
+
+    res.status(200).json(users);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }     
+});
 
 export default userRouter;

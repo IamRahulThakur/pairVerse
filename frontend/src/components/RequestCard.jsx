@@ -1,51 +1,47 @@
+// RequestCard.jsx
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
-const RequestCard = ({ user , onAccept , onReject }) => {
+const RequestCard = ({ user, onAccept, onReject }) => {
   const fromUserId = user?.fromUserId;
+  const navigate = useNavigate();
 
   return (
-    user?.status == "interested" && (
-    <>
-    <div className="card card-bordered bg-base-100 shadow-md hover:shadow-lg transition-all">
-      <div className="card-body flex flex-row items-center gap-4">
-        {/* Avatar */}
-        <div className="avatar">
-          <div className="w-16 h-16 rounded-full border">
+    user?.status === "interested" && (
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div className="flex items-center justify-between">
+          <div className="cursor-pointer flex items-center gap-4"
+            onClick={() => navigate(`/profile/${fromUserId._id}`)}>
+            
             <img
-              src={fromUserId.photourl || "/default-avatar.png"} 
+              src={fromUserId.photourl || "/default-avatar.png"}
               alt={`${fromUserId.firstName} ${fromUserId.lastName}`}
+              className="w-16 h-16 rounded-full object-cover border-2 border-gray-300"
             />
+            <div>
+              <h3 className="font-semibold text-lg text-gray-900">
+                {fromUserId.firstName} {fromUserId.lastName}
+              </h3>
+              <p className="text-gray-600">{fromUserId.domain}</p>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <button
+              className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors duration-200"
+              onClick={onAccept}
+            >
+              Accept
+            </button>
+            <button
+              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors duration-200"
+              onClick={onReject}
+            >
+              Reject
+            </button>
           </div>
         </div>
-
-        {/* User info */}
-        <div className="flex-1">
-          <h2 className="font-semibold text-lg">
-            {fromUserId.firstName} {fromUserId.lastName}
-          </h2>
-          <p className="text-sm text-gray-500">{fromUserId.domain}</p>
-          {/* <p className="text-sm text-gray-400 line-clamp-1">{user.bio}</p> */}
-        </div>
-
-        {/* Actions */}
-        <div className="flex flex-col gap-2">
-          <button
-            className="btn btn-xs btn-success"
-            onClick={() => onAccept(user._id)}
-          >
-            Accept
-          </button>
-          <button
-            className="btn btn-xs btn-error"
-            onClick={() => onReject(user._id)}
-          >
-            Reject
-          </button>
-        </div>
       </div>
-    </div>
-    
-    </>)
+    )
   );
 };
 

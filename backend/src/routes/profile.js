@@ -110,4 +110,32 @@ profileRouter.patch("/profile/updatePassword", userAuth, async (req, res) => {
   }
 });
 
+profileRouter.get("/profile/:userId", userAuth, async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const user = await UserModel.findById(userId, {
+      firstName: 1,
+      lastName: 1,
+      username: 1,
+      age: 1,
+      photourl: 1,
+      bio: 1,
+      techStack: 1,
+      experienceLevel: 1,
+      linkedIn: 1,
+      Github: 1,
+      domain: 1,  
+    });
+
+    if (!user) {
+      return res.status(404).send({ error: "User not found" });
+    }
+
+    res.send(user);
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+});
+
 export default profileRouter;

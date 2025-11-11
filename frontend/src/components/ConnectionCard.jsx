@@ -1,27 +1,26 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const ConnectionCard = ({ user }) => {
-  if (!user) {return null};
+  const navigate = useNavigate();
+  if (!user) return null;
 
   return (
-    <div className="card card-bordered bg-base-100 shadow-md w-full max-w-sm transition-transform m-3 transform hover:scale-105">
-      <div className="card-body items-center text-center">
-        {/* Profile Image */}
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow duration-300">
+      <div className="flex flex-col items-center text-center"
+        onClick={() => navigate(`/profile/${user._id}`)}>
         <img
           src={user.photourl || "/default-avatar.png"}
           alt={`${user.firstName} ${user.lastName}`}
-          className="w-20 h-20 rounded-full object-cover border-2 border-gray-300"
+          className="w-20 h-20 rounded-full object-cover border-2 border-gray-300 mb-4"
         />
-
-        {/* Name */}
-        <h2 className="card-title mt-3 text-lg font-semibold">
+        <h3 className="font-semibold text-gray-900 text-lg mb-1">
           {user.firstName} {user.lastName}
-        </h2>
-        {/*Chat Button */}
-
-        <Link to={"/chat/" + user._id}>
-        <button className="btn btn-active">Chat</button>
+        </h3>
+        <Link 
+          to={"/chat/" + user._id}
+          className="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-medium transition-colors duration-200 text-center"
+        >
+          Chat
         </Link>
       </div>
     </div>
