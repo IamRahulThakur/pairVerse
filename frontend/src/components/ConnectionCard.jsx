@@ -6,14 +6,14 @@ const ConnectionCard = ({ user }) => {
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow duration-300">
-      <div className="flex flex-col items-center text-center"
-        onClick={() => navigate(`/profile/${user._id}`)}>
+      <div className="flex flex-col items-center text-center">
         <img
           src={user.photourl || "/default-avatar.png"}
           alt={`${user.firstName} ${user.lastName}`}
-          className="w-20 h-20 rounded-full object-cover border-2 border-gray-300 mb-4"
-        />
-        <h3 className="font-semibold text-gray-900 text-lg mb-1">
+          className="cursor-pointer w-20 h-20 rounded-full object-cover border-2 border-gray-300 mb-4"
+          onClick={() => navigate(`/profile/${user._id}`)}/>
+        <h3 className="cursor-pointer font-semibold text-gray-900 text-lg mb-1"
+          onClick={() => navigate(`/profile/${user._id}`)}>
           {user.firstName} {user.lastName}
         </h3>
         <Link 

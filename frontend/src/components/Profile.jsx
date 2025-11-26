@@ -39,15 +39,35 @@ const Profile = () => {
     }
   };
 
-  const handleDelete = async (id) => {
-    try {
-      await api.delete(`user/posts/delete/${id}`);
-      toast.success("Post Deleted Successfully");
-      dispatch(setPosts(posts.filter((p) => p._id !== id)));
-    } catch (error) {
-      console.log(error.message);
+  // In Profile.jsx - Update the handleDelete function
+const handleDelete = async (id) => {
+  try {
+    console.log("Attempting to delete post:", id);
+    const response = await api.delete(`/user/posts/delete/${id}`);
+    console.log("Delete response:", response);
+    
+    toast.success("Post Deleted Successfully");
+    // Update the posts in Redux store
+    const updatedPosts = posts.filter((p) => p._id !== id);
+    dispatch(setPosts(updatedPosts));
+  } catch (error) {
+    console.log("Full delete error:", error);
+    console.log("Error response:", error.response);
+    
+    if (error.response?.status === 500) {
+      const serverError = error.response.data?.error;
+      toast.error(`Server error: ${serverError || "Could not delete post"}`);
+    } else if (error.response?.status === 404) {
+      toast.error("Post not found");
+    } else if (error.response?.status === 403) {
+      toast.error("Not authorized to delete this post");
+    } else if (error.response?.status === 400) {
+      toast.error("Invalid post ID");
+    } else {
+      toast.error(error.response?.data?.error || "Failed to delete post");
     }
-  };
+  }
+};
 
   useEffect(() => {
     fetchUser();
