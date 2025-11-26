@@ -1,7 +1,16 @@
-// Notifications.jsx
 import React, { useState, useEffect, useCallback } from "react";
 import { api } from "../utils/api";
 import { Link } from "react-router-dom";
+import {
+  Bell,
+  Check,
+  CheckCheck,
+  MessageCircle,
+  UserPlus,
+  Heart,
+  FileText,
+  MoreHorizontal
+} from "lucide-react";
 
 const Notifications = () => {
   const [notifications, setNotifications] = useState([]);
@@ -18,10 +27,10 @@ const Notifications = () => {
       } else {
         setLoading(true);
       }
-      
+
       setError("");
       const response = await api.get(`/user/notifications?page=${pageNum}&limit=10`);
-      
+
       if (response.data === "No unread notifications") {
         if (isLoadMore) {
           setHasMore(false);
@@ -31,10 +40,12 @@ const Notifications = () => {
         return;
       }
 
-      const newNotifications = response.data.map((title, index) => ({
-        id: `notification-${pageNum}-${index}`,
-        title,
-        isRead: false
+      const newNotifications = response.data.map(notification => ({
+        id: notification._id,
+        title: notification.title,
+        isRead: notification.status === 'read',
+        createdAt: notification.createdAt,
+        type: notification.type
       }));
 
       if (isLoadMore) {
@@ -43,7 +54,6 @@ const Notifications = () => {
         setNotifications(newNotifications);
       }
 
-      // Check if we have more notifications to load
       if (newNotifications.length < 10) {
         setHasMore(false);
       }
@@ -59,9 +69,8 @@ const Notifications = () => {
   const markAsRead = async (notificationId) => {
     try {
       await api.patch(`/user/notification/${notificationId}/mark-read`);
-      // Update local state
-      setNotifications(prev => 
-        prev.map(notif => 
+      setNotifications(prev =>
+        prev.map(notif =>
           notif.id === notificationId ? { ...notif, isRead: true } : notif
         )
       );
@@ -73,8 +82,7 @@ const Notifications = () => {
   const markAllAsRead = async () => {
     try {
       await api.patch("/user/notifications/mark-all-read");
-      // Update all notifications to read
-      setNotifications(prev => 
+      setNotifications(prev =>
         prev.map(notif => ({ ...notif, isRead: true }))
       );
     } catch (err) {
@@ -98,20 +106,18 @@ const Notifications = () => {
 
   if (loading && !loadingMore) {
     return (
-      <div className="min-h-screen bg-gray-50 pt-16">
-        <div className="max-w-2xl mx-auto p-6">
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <div className="animate-pulse space-y-4">
-              {[...Array(3)].map((_, i) => (
-                <div key={i} className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
-                  <div className="flex-1">
-                    <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                    <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                  </div>
+      <div className="min-h-screen bg-base-100 pt-20 pb-10">
+        <div className="max-w-2xl mx-auto px-4">
+          <div className="glass-card p-6 space-y-4">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="flex gap-4 animate-pulse">
+                <div className="w-12 h-12 bg-base-300 rounded-full"></div>
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 bg-base-300 rounded w-3/4"></div>
+                  <div className="h-3 bg-base-300 rounded w-1/2"></div>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -119,78 +125,70 @@ const Notifications = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-16">
-      <div className="max-w-2xl mx-auto p-6">
+    <div className="min-h-screen bg-base-100 pt-20 pb-10">
+      <div className="max-w-2xl mx-auto px-4">
         {/* Header */}
-        <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
-          <div className="flex justify-between items-center mb-4">
-            <h1 className="text-2xl font-bold text-gray-900">Notifications</h1>
+        <div className="glass-card p-4 mb-6 sticky top-20 z-10 bg-white/80 backdrop-blur-md border border-base-300 shadow-sm">
+          <div className="flex justify-between items-center">
+            <h1 className="text-xl font-bold text-base-content flex items-center gap-2">
+              <Bell className="w-6 h-6 text-primary" />
+              Notifications
+              {unreadCount > 0 && (
+                <span className="bg-error text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                  {unreadCount}
+                </span>
+              )}
+            </h1>
             {unreadCount > 0 && (
               <button
                 onClick={markAllAsRead}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200"
+                className="text-sm font-medium text-primary hover:text-primary-focus flex items-center gap-1 transition-colors"
+                title="Mark all as read"
               >
-                Mark All as Read
+                <CheckCheck className="w-4 h-4" />
+                Mark all read
               </button>
             )}
           </div>
-          
-          {unreadCount > 0 && (
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
-              <span>{unreadCount} unread notification{unreadCount !== 1 ? 's' : ''}</span>
-            </div>
-          )}
         </div>
 
         {/* Error Message */}
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-            <div className="flex items-center gap-2 text-red-700">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              {error}
-            </div>
+          <div className="bg-error/10 border border-error/20 rounded-xl p-4 mb-6 text-error flex items-center gap-2">
+            <div className="w-2 h-2 bg-error rounded-full animate-pulse"></div>
+            {error}
           </div>
         )}
 
         {/* Notifications List */}
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+        <div className="space-y-2">
           {notifications.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="text-gray-400 mb-4">
-                <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                </svg>
+            <div className="glass-card p-12 text-center">
+              <div className="w-20 h-20 bg-base-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Bell className="w-10 h-10 text-base-content/30" />
               </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No notifications</h3>
-              <p className="text-gray-500">You're all caught up! Check back later for new notifications.</p>
+              <h3 className="text-lg font-semibold text-base-content mb-1">No notifications yet</h3>
+              <p className="text-base-content/60">When you get notifications, they'll show up here.</p>
             </div>
           ) : (
             <>
-              {notifications.map((notification, index) => (
+              {notifications.map((notification) => (
                 <NotificationItem
                   key={notification.id}
                   notification={notification}
                   onMarkAsRead={markAsRead}
-                  isLast={index === notifications.length - 1}
                 />
               ))}
-              
-              {/* Load More Button */}
+
               {hasMore && (
-                <div className="p-4 border-t border-gray-100 text-center">
+                <div className="pt-4 text-center">
                   <button
                     onClick={loadMore}
                     disabled={loadingMore}
-                    className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-2 rounded-lg font-medium transition-colors duration-200 disabled:opacity-50"
+                    className="btn-ghost text-sm"
                   >
                     {loadingMore ? (
-                      <div className="flex items-center gap-2">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600"></div>
-                        Loading...
-                      </div>
+                      <span className="loading loading-spinner loading-sm"></span>
                     ) : (
                       "Load More"
                     )}
@@ -206,7 +204,7 @@ const Notifications = () => {
 };
 
 // Individual Notification Component
-const NotificationItem = ({ notification, onMarkAsRead, isLast }) => {
+const NotificationItem = ({ notification, onMarkAsRead }) => {
   const [isRead, setIsRead] = useState(notification.isRead);
 
   const handleClick = () => {
@@ -216,60 +214,55 @@ const NotificationItem = ({ notification, onMarkAsRead, isLast }) => {
     }
   };
 
-  const getNotificationIcon = (title) => {
-    if (title.toLowerCase().includes('connection') || title.toLowerCase().includes('request')) {
-      return "🤝";
-    } else if (title.toLowerCase().includes('message') || title.toLowerCase().includes('chat')) {
-      return "💬";
-    } else if (title.toLowerCase().includes('like') || title.toLowerCase().includes('reaction')) {
-      return "❤️";
-    } else if (title.toLowerCase().includes('post') || title.toLowerCase().includes('update')) {
-      return "📝";
+  const getIconAndColor = (title) => {
+    const t = title.toLowerCase();
+    if (t.includes('connection') || t.includes('request')) {
+      return { icon: UserPlus, color: 'text-blue-500 bg-blue-50' };
+    } else if (t.includes('message') || t.includes('chat')) {
+      return { icon: MessageCircle, color: 'text-green-500 bg-green-50' };
+    } else if (t.includes('like') || t.includes('reaction')) {
+      return { icon: Heart, color: 'text-red-500 bg-red-50' };
+    } else if (t.includes('post') || t.includes('update')) {
+      return { icon: FileText, color: 'text-purple-500 bg-purple-50' };
     } else {
-      return "🔔";
+      return { icon: Bell, color: 'text-gray-500 bg-gray-50' };
     }
   };
 
-  const getNotificationType = (title) => {
-    if (title.toLowerCase().includes('accepted')) return 'success';
-    if (title.toLowerCase().includes('rejected') || title.toLowerCase().includes('declined')) return 'error';
-    return 'info';
-  };
-
-  const type = getNotificationType(notification.title);
+  const { icon: Icon, color } = getIconAndColor(notification.title);
 
   return (
     <div
-      className={`flex items-start gap-4 p-4 hover:bg-gray-50 transition-colors duration-200 cursor-pointer ${
-        !isLast ? 'border-b border-gray-100' : ''
-      } ${!isRead ? 'bg-blue-50' : ''}`}
       onClick={handleClick}
+      className={`group relative p-4 rounded-xl transition-all duration-200 cursor-pointer border border-transparent hover:border-base-300 ${!isRead ? 'bg-primary/5 hover:bg-primary/10' : 'bg-white hover:bg-gray-50'
+        }`}
     >
-      {/* Notification Icon */}
-      <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-lg ${
-        type === 'success' ? 'bg-green-100 text-green-600' :
-        type === 'error' ? 'bg-red-100 text-red-600' :
-        'bg-blue-100 text-blue-600'
-      }`}>
-        {getNotificationIcon(notification.title)}
-      </div>
-
-      {/* Notification Content */}
-      <div className="flex-1 min-w-0">
-        <p className={`text-sm ${!isRead ? 'font-medium text-gray-900' : 'text-gray-700'}`}>
-          {notification.title}
-        </p>
-        <p className="text-xs text-gray-500 mt-1">
-          {new Date().toLocaleDateString()} • {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-        </p>
-      </div>
-
-      {/* Unread Indicator */}
-      {!isRead && (
-        <div className="flex-shrink-0">
-          <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+      <div className="flex gap-4">
+        {/* Icon */}
+        <div className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 ${color}`}>
+          <Icon className="w-6 h-6" />
         </div>
-      )}
+
+        {/* Content */}
+        <div className="flex-1 min-w-0">
+          <p className={`text-sm leading-snug ${!isRead ? 'font-semibold text-base-content' : 'text-base-content/80'}`}>
+            {notification.title}
+          </p>
+          <p className="text-xs text-base-content/50 mt-1">
+            {new Date(notification.createdAt).toLocaleDateString()} • {new Date(notification.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          </p>
+        </div>
+
+        {/* Actions/Status */}
+        <div className="flex flex-col items-end gap-2">
+          {!isRead && (
+            <span className="w-3 h-3 bg-primary rounded-full ring-2 ring-white"></span>
+          )}
+          <button className="p-1 rounded-full text-base-content/40 hover:bg-base-200 hover:text-base-content opacity-0 group-hover:opacity-100 transition-all">
+            <MoreHorizontal className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
     </div>
   );
 };

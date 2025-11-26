@@ -3,6 +3,7 @@ import { userAuth } from "../middlewares/auth.js";
 import { UserModel } from "../model/user.js";
 import validator from "validator";
 import bcrypt from "bcrypt";
+import {upload} from "../middlewares/multer.js";
 
 const profileRouter = express.Router();
 
@@ -28,40 +29,56 @@ profileRouter.get("/profile", userAuth, async (req, res) => {
   res.send(user);
 });
 
-profileRouter.patch("/profile/edit", userAuth, async (req, res) => {
-  try {
-    const data = req.body;
+profileRouter.patch(
+  "/profile/edit",
+  userAuth,
+  upload.single("photo"), // handles optional file upload
+  async (req, res) => {
+    try {
+      const data = req.body;
 
-    if(data.techStack) {
-      data.techStack = data.techStack.map(item => item.trim());
-    }
-    
-    if (data.emailId || data.password) {
-      return res.status(422).send("Invalid Updates");
-    }
-
-    const username = req.body.username;
-    if (username) {
-      const user = await UserModel.findOne({ username });
-      if (user && user._id.toString() !== req.user._id.toString()) {
-        return res.status(409).json({
-          field: "username",
-          message: "username exists",
-        });
+      // Clean techStack if provided
+      if (data.techStack) {
+        data.techStack = data.techStack.map((item) => item.trim());
       }
-    }
-    // Update user profile
-    await UserModel.findByIdAndUpdate(req.user._id, data, {
-      new: true,
-      runValidators: true,
-    });
 
-    // Send updated user data
-    res.send("User Data Updated Successfully....");
-  } catch (error) {
-    res.status(500).send({ error: error.message });
+      // Disallow email/password changes
+      if (data.emailId || data.password) {
+        return res.status(422).send("Invalid Updates");
+      }
+
+      // Check for unique username
+      if (data.username) {
+        const existing = await UserModel.findOne({ username: data.username });
+        if (existing && existing._id.toString() !== req.user._id.toString()) {
+          return res.status(409).json({
+            field: "username",
+            message: "username exists",
+          });
+        }
+      }
+
+      // If image uploaded, set new photourl from Cloudinary
+      if (req.file && req.file.path) {
+        data.photourl = req.file.path;
+      }
+
+      // Update user
+      const updatedUser = await UserModel.findByIdAndUpdate(req.user._id, data, {
+        new: true,
+        runValidators: true,
+      });
+
+      res.status(200).json({
+        success: true,
+        message: "User profile updated successfully",
+        user: updatedUser,
+      });
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
   }
-});
+);
 
 profileRouter.patch("/profile/updatePassword", userAuth, async (req, res) => {
   const { password, newPassword, confirmPassword } = req.body;

@@ -15,7 +15,6 @@ chatRouter.get("/chat/:targetUserId", userAuth, async (req, res) => {
       return res.status(404).json({ message: "Target user not found" });
     }
 
-    // FIX: Remove $all operator, use direct array check
     let chat = await chatModel.findOne({
       participants: { $all: [userId, targetUserId] }
     }).populate({
@@ -24,9 +23,8 @@ chatRouter.get("/chat/:targetUserId", userAuth, async (req, res) => {
     });
 
     if (!chat) {
-      // FIX: Create new chat with proper participants array
       chat = new chatModel({
-        participants: [userId, targetUserId], // Remove $all, use direct array
+        participants: [userId, targetUserId],
         messages: [],
       });
       await chat.save();

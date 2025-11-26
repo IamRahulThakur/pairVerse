@@ -19,6 +19,7 @@ import FindFriends from "./components/MatchingPeers";
 import SearchUsers from "./components/SearchUsers";
 import UserProfile from "./components/UserProfile";
 import MatchingPeers from "./components/MatchingPeers";
+import Notifications from "./components/Notifications";
 
 function App() {
   return (
@@ -31,18 +32,19 @@ function App() {
               <Route path="/signup" element={<Signup />} />
               <Route path="/feed" element={<Feed />} />
               <Route path="/profile" element={<Profile />} />
-              <Route path="/profile/edit" element={<EditProfile/>} />
-              <Route path="/connection/requests" element={<ConnectionRequests/>} />
-              <Route path="/connection" element={<Connection/>} />
-              <Route path="/user/createpost" element={<CreatePost/>} />
-              <Route path="/changepassword" element={<ChangePassword/>} />
+              <Route path="/profile/edit" element={<EditProfile />} />
+              <Route path="/connection/requests" element={<ConnectionRequests />} />
+              <Route path="/connection" element={<Connection />} />
+              <Route path="/user/createpost" element={<CreatePost />} />
+              <Route path="/changepassword" element={<ChangePassword />} />
               <Route path="/chat/:targetUserId" element={<Chat />} />
               <Route path="/matchingpeers" element={<MatchingPeers />} />
               <Route path="/search" element={<SearchUsers />} />
               <Route path="/profile/:userId" element={<UserProfile />} />
+              <Route path="/notifications" element={<Notifications />} />
               <Route path="/footer" element={<Footer />} />
             </Route>
-          <Route path="*" element={<NotFound />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
       </Provider>

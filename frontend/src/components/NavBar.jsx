@@ -1,12 +1,21 @@
-// Updated NavBar.jsx (just the relevant part)
 import React, { useState } from "react";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { api } from "../utils/api";
-import { useDispatch } from "react-redux";
 import { removeUser } from "../utils/userSlice";
-import toast from "react-hot-toast";
-import SearchUsers from "./SearchUsers"; // Import the search component
+import SearchUsers from "./SearchUsers";
+import {
+  User,
+  Bell,
+  Users,
+  Network,
+  LogOut,
+  Lock,
+  Menu,
+  X,
+  Search,
+  ChevronDown
+} from "lucide-react";
 
 const NavBar = () => {
   const user = useSelector((store) => store.user);
@@ -31,102 +40,109 @@ const NavBar = () => {
   };
 
   const navItems = [
-    { path: "/profile", label: "Profile", icon: "👤" },
-    { path: "/connection/requests", label: "Requests", icon: "🔔" },
-    { path: "/matchingpeers", label: "Peers", icon: "🤝" },
-    { path: "/connection", label: "Connections", icon: "👥" },
+    { path: "/profile", label: "Profile", icon: User },
+    { path: "/notifications", label: "Notifications", icon: Bell },
+    { path: "/connection/requests", label: "Requests", icon: Users },
+    { path: "/matchingpeers", label: "Peers", icon: Network },
+    { path: "/connection", label: "Connections", icon: Users },
   ];
 
   return (
-    <nav className="bg-white shadow-lg fixed top-0 left-0 right-0 z-50">
+    <nav className="glass fixed top-0 left-0 right-0 z-50 border-b border-base-content/5">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16 items-center">
+        <div className="flex justify-between h-20 items-center">
           {/* Logo */}
-          <Link to="/feed" className="flex items-center">
-            <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              PairVerse
-            </span>
+          <Link to="/feed" className="flex items-center group">
+            <div className="relative">
+              <div className="absolute -inset-1 bg-gradient-to-r from-primary to-secondary rounded-lg blur opacity-25 group-hover:opacity-75 transition duration-1000 group-hover:duration-200"></div>
+              <span className="relative text-3xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent tracking-tight">
+                PairVerse
+              </span>
+            </div>
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex md:items-center md:gap-8 flex-1 justify-center">
+          <div className="hidden md:flex md:items-center md:gap-8 flex-1 justify-end">
             {user && (
               <>
-                {/* Search Bar - Centered */}
-                <div className="w-full max-w-md mx-8">
+                {/* Search Bar */}
+                <div className="w-full max-w-sm mx-4">
                   <SearchUsers />
                 </div>
 
                 {/* Navigation Links */}
-                <div className="flex items-center gap-6">
-                  {navItems.map((item) => (
-                    <Link
-                      key={item.path}
-                      to={item.path}
-                      className={`flex items-center gap-2 px-3 py-2 rounded-lg font-medium transition-all duration-200 ${
-                        isActiveRoute(item.path)
-                          ? "bg-blue-100 text-blue-700 border-b-2 border-blue-600"
-                          : "text-gray-700 hover:text-blue-600 hover:bg-gray-100"
-                      }`}
-                    >
-                      <span className="text-lg">{item.icon}</span>
-                      {item.label}
-                    </Link>
-                  ))}
+                <div className="flex items-center gap-2">
+                  {navItems.map((item) => {
+                    const Icon = item.icon;
+                    const active = isActiveRoute(item.path);
+                    return (
+                      <Link
+                        key={item.path}
+                        to={item.path}
+                        className={`relative group p-3 rounded-xl transition-all duration-300 ${active
+                            ? "bg-primary/10 text-primary"
+                            : "text-base-content/60 hover:text-primary hover:bg-base-content/5"
+                          }`}
+                        title={item.label}
+                      >
+                        <Icon className={`w-6 h-6 ${active ? "fill-current" : ""}`} strokeWidth={active ? 2.5 : 2} />
+                        {active && (
+                          <span className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-primary rounded-full"></span>
+                        )}
+                      </Link>
+                    );
+                  })}
                 </div>
 
                 {/* User Profile Dropdown */}
-                <div className="flex items-center gap-4 border-l border-gray-200 pl-6">
-                  <div className="text-sm text-gray-600">
-                    Welcome, <span className="font-semibold text-gray-900">{user.firstName}</span>
-                  </div>
-                  
-                  <div className="relative">
-                    <button
-                      onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
-                      className="flex items-center gap-2 focus:outline-none"
-                    >
+                <div className="relative ml-4 pl-4 border-l border-base-content/10">
+                  <button
+                    onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+                    className="flex items-center gap-3 focus:outline-none group"
+                  >
+                    <div className="text-right hidden lg:block">
+                      <p className="text-sm font-semibold text-base-content group-hover:text-primary transition-colors">
+                        {user.firstName}
+                      </p>
+                      <p className="text-xs text-base-content/50">Online</p>
+                    </div>
+                    <div className="relative">
                       <img
-                        alt="User photo"
+                        alt="User"
                         src={user?.photourl || "https://placeimg.com/80/80/people"}
-                        className="w-10 h-10 rounded-full border-2 border-blue-500"
+                        className="w-10 h-10 rounded-full border-2 border-base-content/10 group-hover:border-primary transition-colors object-cover"
                       />
-                      <svg 
-                        className={`w-4 h-4 text-gray-600 transition-transform duration-200 ${
-                          isProfileDropdownOpen ? "rotate-180" : ""
-                        }`} 
-                        fill="none" 
-                        stroke="currentColor" 
-                        viewBox="0 0 24 24"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </button>
+                      <div className="absolute bottom-0 right-0 w-3 h-3 bg-success rounded-full border-2 border-base-100"></div>
+                    </div>
+                    <ChevronDown className={`w-4 h-4 text-base-content/50 transition-transform duration-300 ${isProfileDropdownOpen ? "rotate-180" : ""}`} />
+                  </button>
 
-                    {/* Profile Dropdown */}
-                    {isProfileDropdownOpen && (
-                      <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 py-2">
+                  {/* Dropdown Menu */}
+                  {isProfileDropdownOpen && (
+                    <div className="absolute right-0 top-full mt-4 w-56 glass rounded-2xl shadow-2xl border border-base-content/5 overflow-hidden animate-in fade-in slide-in-from-top-5 duration-200">
+                      <div className="p-2 space-y-1">
                         <Link
                           to="/changepassword"
-                          className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors duration-200"
+                          className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-base-content/80 hover:bg-primary/10 hover:text-primary rounded-xl transition-colors"
                           onClick={() => setIsProfileDropdownOpen(false)}
                         >
-                          <span>🔒</span>
+                          <Lock className="w-4 h-4" />
                           Change Password
                         </Link>
+                        <div className="h-px bg-base-content/5 my-1"></div>
                         <button
                           onClick={() => {
                             handleLogout();
                             setIsProfileDropdownOpen(false);
                           }}
-                          className="flex items-center gap-2 w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors duration-200"
+                          className="flex items-center gap-3 w-full text-left px-4 py-3 text-sm font-medium text-error hover:bg-error/10 rounded-xl transition-colors"
                         >
-                          <span>🚪</span>
+                          <LogOut className="w-4 h-4" />
                           Logout
                         </button>
                       </div>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </div>
               </>
             )}
@@ -135,31 +151,18 @@ const NavBar = () => {
           {/* Mobile Hamburger */}
           {user && (
             <div className="md:hidden flex items-center gap-4">
-              {/* Mobile Search Icon */}
               <Link
                 to="/search"
-                className="p-2 text-gray-600 hover:text-blue-600 transition-colors duration-200"
+                className="p-2 text-base-content/60 hover:text-primary transition-colors"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
+                <Search className="w-6 h-6" />
               </Link>
-              
-              <div className="text-sm text-gray-600">
-                Hi, <span className="font-semibold">{user.firstName}</span>
-              </div>
-              
+
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors duration-200"
+                className="p-2 rounded-xl text-base-content/60 hover:bg-base-content/5 transition-colors"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  {isMobileMenuOpen ? (
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  ) : (
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                  )}
-                </svg>
+                {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
               </button>
             </div>
           )}
@@ -168,62 +171,62 @@ const NavBar = () => {
 
       {/* Mobile Menu */}
       {isMobileMenuOpen && user && (
-        <div className="md:hidden bg-white border-t border-gray-200 shadow-lg">
-          <div className="px-4 py-4 space-y-2">
+        <div className="md:hidden glass border-t border-base-content/5 animate-in slide-in-from-top-5 duration-300">
+          <div className="p-4 space-y-4">
             {/* User Info */}
-            <div className="flex items-center gap-3 px-3 py-2 border-b border-gray-100 mb-2">
+            <div className="flex items-center gap-4 p-4 bg-base-content/5 rounded-2xl">
               <img
-                alt="User photo"
+                alt="User"
                 src={user?.photourl || "https://placeimg.com/80/80/people"}
-                className="w-10 h-10 rounded-full border-2 border-blue-500"
+                className="w-12 h-12 rounded-full border-2 border-primary/20"
               />
               <div>
-                <p className="font-semibold text-gray-900">{user.firstName} {user.lastName}</p>
-                <p className="text-sm text-gray-600">{user.emailId}</p>
+                <p className="font-bold text-base-content">{user.firstName} {user.lastName}</p>
+                <p className="text-sm text-base-content/50">{user.emailId}</p>
               </div>
             </div>
 
-            {/* Mobile Search Bar */}
-            <div className="px-3 py-2">
-              <SearchUsers />
+            {/* Navigation Links */}
+            <div className="space-y-1">
+              {navItems.map((item) => {
+                const Icon = item.icon;
+                const active = isActiveRoute(item.path);
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-200 ${active
+                        ? "bg-primary/10 text-primary font-semibold"
+                        : "text-base-content/70 hover:bg-base-content/5"
+                      }`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <Icon className="w-5 h-5" />
+                    {item.label}
+                  </Link>
+                );
+              })}
             </div>
 
-            {/* Navigation Links */}
-            {navItems.map((item) => (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`flex items-center gap-3 px-3 py-3 rounded-lg transition-colors duration-200 ${
-                  isActiveRoute(item.path)
-                    ? "bg-blue-100 text-blue-700 border-r-4 border-blue-600"
-                    : "text-gray-700 hover:bg-gray-100"
-                }`}
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                <span className="text-xl">{item.icon}</span>
-                <span className="font-medium">{item.label}</span>
-              </Link>
-            ))}
-
             {/* Additional Options */}
-            <div className="border-t border-gray-100 pt-2 mt-2">
+            <div className="pt-4 border-t border-base-content/5 space-y-1">
               <Link
                 to="/changepassword"
-                className="flex items-center gap-3 px-3 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+                className="flex items-center gap-4 px-4 py-3 text-base-content/70 hover:bg-base-content/5 rounded-xl transition-colors"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                <span>🔒</span>
-                <span className="font-medium">Change Password</span>
+                <Lock className="w-5 h-5" />
+                Change Password
               </Link>
               <button
                 onClick={() => {
                   handleLogout();
                   setIsMobileMenuOpen(false);
                 }}
-                className="flex items-center gap-3 w-full text-left px-3 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+                className="flex items-center gap-4 w-full text-left px-4 py-3 text-error hover:bg-error/10 rounded-xl transition-colors"
               >
-                <span>🚪</span>
-                <span className="font-medium">Logout</span>
+                <LogOut className="w-5 h-5" />
+                Logout
               </button>
             </div>
           </div>

@@ -1,7 +1,7 @@
-// SearchUsers.jsx
 import React, { useState, useEffect, useRef } from "react";
 import { api } from "../utils/api";
 import { Link } from "react-router-dom";
+import { Search, X } from "lucide-react";
 
 const SearchUsers = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -10,7 +10,6 @@ const SearchUsers = () => {
   const [showDropdown, setShowDropdown] = useState(false);
   const searchRef = useRef(null);
 
-  // Search function
   const searchUsers = async (username) => {
     if (!username.trim()) {
       setSearchResults([]);
@@ -20,11 +19,6 @@ const SearchUsers = () => {
     try {
       setIsLoading(true);
       const response = await api.get(`/search/${username}`);
-      
-      // DEBUG: Log what backend returns
-      console.log("Backend returned:", response.data);
-      
-      // Simply set whatever backend returns - nothing more, nothing less
       setSearchResults(response.data);
     } catch (error) {
       console.error("Search error:", error);
@@ -34,7 +28,6 @@ const SearchUsers = () => {
     }
   };
 
-  // Debounce search
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       if (searchQuery.trim()) {
@@ -47,7 +40,6 @@ const SearchUsers = () => {
     return () => clearTimeout(timeoutId);
   }, [searchQuery]);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (searchRef.current && !searchRef.current.contains(event.target)) {
@@ -71,49 +63,56 @@ const SearchUsers = () => {
   };
 
   return (
-    <div className="text-gray-900 relative w-full max-w-md" ref={searchRef}>
-      {/* Search Input */}
-      <div className="relative">
+    <div className="relative w-full max-w-md" ref={searchRef}>
+      <div className="relative group">
         <input
           type="text"
           value={searchQuery}
           onChange={handleInputChange}
           onFocus={() => setShowDropdown(true)}
-          placeholder="Search users by username..."
-          className="w-full px-4 py-2 pl-10 pr-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+          placeholder="Search users..."
+          className="w-full bg-base-content/5 border border-base-content/10 rounded-full py-2.5 pl-11 pr-10 text-base-content placeholder:text-base-content/40 focus:outline-none focus:bg-base-100 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all shadow-sm"
         />
-        
-        {/* Search Icon */}
-        <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
-          <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
+
+        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-base-content/40 group-focus-within:text-primary transition-colors">
+          <Search className="w-4 h-4" />
         </div>
 
-        {/* Loading Indicator */}
-        {isLoading && (
-          <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+        {isLoading ? (
+          <div className="absolute right-4 top-1/2 -translate-y-1/2">
+            <div className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin"></div>
           </div>
+        ) : searchQuery && (
+          <button
+            onClick={() => {
+              setSearchQuery("");
+              setSearchResults([]);
+            }}
+            className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-base-content/10 rounded-full text-base-content/40 hover:text-base-content transition-colors"
+          >
+            <X className="w-3 h-3" />
+          </button>
         )}
       </div>
 
       {/* Dropdown Results */}
-      {showDropdown && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto z-50">
+      {showDropdown && (searchQuery.trim() || searchResults.length > 0) && (
+        <div className="absolute top-full left-0 right-0 mt-2 glass-card overflow-hidden shadow-xl z-50 animate-in fade-in slide-in-from-top-2 duration-200">
           {isLoading ? (
-            <div className="p-4 text-center text-gray-500">Searching...</div>
+            <div className="p-4 text-center text-base-content/50 text-sm">Searching...</div>
           ) : searchResults.length > 0 ? (
-            searchResults.map((user) => (
-              <SearchResultItem 
-                key={user._id} 
-                user={user} 
-                onClick={handleResultClick}
-              />
-            ))
+            <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
+              {searchResults.map((user) => (
+                <SearchResultItem
+                  key={user._id}
+                  user={user}
+                  onClick={handleResultClick}
+                />
+              ))}
+            </div>
           ) : searchQuery.trim() ? (
-            <div className="p-4 text-center text-gray-500">
-              No users found
+            <div className="p-4 text-center text-base-content/50 text-sm">
+              No users found matching "{searchQuery}"
             </div>
           ) : null}
         </div>
@@ -122,24 +121,23 @@ const SearchUsers = () => {
   );
 };
 
-// Search Result Item Component
 const SearchResultItem = ({ user, onClick }) => {
   return (
     <Link
       to={`/profile/${user._id}`}
       onClick={onClick}
-      className="flex items-center gap-3 p-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
+      className="flex items-center gap-3 p-3 hover:bg-primary/5 border-b border-base-content/5 last:border-b-0 transition-colors group"
     >
       <img
-        src={user.photourl || "/default-avatar.png"}
+        src={user.photourl || "https://placeimg.com/80/80/people"}
         alt={`${user.firstName} ${user.lastName}`}
-        className="w-10 h-10 rounded-full object-cover border border-gray-300"
+        className="w-10 h-10 rounded-full object-cover border border-base-content/10 group-hover:border-primary/30 transition-colors"
       />
       <div>
-        <div className="font-medium text-gray-900">
+        <div className="font-medium text-base-content group-hover:text-primary transition-colors">
           {user.firstName} {user.lastName}
         </div>
-        <div className="text-gray-600 text-sm">@{user.username}</div>
+        <div className="text-base-content/50 text-xs">@{user.username}</div>
       </div>
     </Link>
   );

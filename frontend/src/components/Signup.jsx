@@ -1,96 +1,138 @@
-// Signup.jsx
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import { api } from "../utils/api";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { addUser } from "../utils/userSlice";
+import { api } from "../utils/api";
 import toast from "react-hot-toast";
+import { Eye, EyeOff, Mail, Lock, ArrowRight, UserPlus } from "lucide-react";
 
 const Signup = () => {
   const [emailId, setEmailId] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [invalidPasswordMessage, setInvalidPasswordMessage] = useState(null);
+  const [error, setError] = useState("");
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const handleSignup = async (e) => {
     e.preventDefault();
+    setError("");
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
     try {
-      if (password !== confirmPassword) {
-        setInvalidPasswordMessage("Passwords do not match");
-        return;
-      }
       const response = await api.post("/signup", { emailId, password });
-      toast.success("User Created Successfully");
+      toast.success("Account created successfully!");
       dispatch(addUser(response.data));
-      return navigate("/profile/edit");
-    } catch (error) {
-      const backendError = error.response?.data?.error || "Something went wrong";
-      toast.error(backendError);
+      navigate("/profile/edit");
+    } catch (err) {
+      setError(err.response?.data?.error || "Something went wrong");
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-lg p-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">Sign Up</h2>
-        <form className="space-y-4">
-          <div>
-            <input
-              type="email"
-              value={emailId}
-              onChange={(e) => setEmailId(e.target.value)}
-              placeholder="Email"
-              className="w-full px-4 text-gray-900 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
-            />
-          </div>
-          <div>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Password"
-              className="w-full text-gray-900  px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
-            />
-          </div>
-          <div className="relative" >
-            <input
-              type={showPassword ? "text" : "password"}
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="Enter password"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 bg-white text-gray-900 placeholder-gray-400 pr-12"
-            />
+    <div className="min-h-[80vh] flex items-center justify-center px-4 py-12">
+      <div className="w-full max-w-md">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-secondary via-accent to-primary bg-clip-text text-transparent mb-2">
+            Join PairVerse
+          </h1>
+          <p className="text-base-content/60">
+            Start your journey with us today
+          </p>
+        </div>
+
+        {/* Card */}
+        <div className="glass-card p-8 shadow-2xl border border-base-content/10 relative overflow-hidden">
+          {/* Decorative background blur */}
+          <div className="absolute -top-20 -left-20 w-40 h-40 bg-secondary/20 rounded-full blur-3xl"></div>
+          <div className="absolute -bottom-20 -right-20 w-40 h-40 bg-accent/20 rounded-full blur-3xl"></div>
+
+          <form className="space-y-6 relative z-10" onSubmit={handleSignup}>
+            {error && (
+              <div className="p-3 rounded-xl bg-error/10 border border-error/20 text-error text-sm text-center">
+                {error}
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-base-content/80 ml-1">Email Address</label>
+              <div className="relative">
+                <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-base-content/40" />
+                <input
+                  type="email"
+                  value={emailId}
+                  onChange={(e) => setEmailId(e.target.value)}
+                  placeholder="you@example.com"
+                  className="input-field pl-12"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-base-content/80 ml-1">Password</label>
+              <div className="relative">
+                <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-base-content/40" />
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Create a password"
+                  className="input-field pl-12 pr-12"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-base-content/40 hover:text-primary transition-colors"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-base-content/80 ml-1">Confirm Password</label>
+              <div className="relative">
+                <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-base-content/40" />
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Confirm your password"
+                  className="input-field pl-12 pr-12"
+                  required
+                />
+              </div>
+            </div>
+
             <button
-              type="button"
-              onClick={() => setShowPassword((prev) => !prev)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+              type="submit"
+              className="btn-secondary w-full flex items-center justify-center gap-2 group"
             >
-              {showPassword ? "🙈" : "👁️"}
+              Create Account
+              <UserPlus className="w-5 h-5 group-hover:scale-110 transition-transform" />
             </button>
-              
-            
+          </form>
+
+          <div className="mt-8 text-center relative z-10">
+            <p className="text-base-content/60">
+              Already have an account?{" "}
+              <Link
+                to="/login"
+                className="text-secondary font-semibold hover:text-secondary/80 transition-colors"
+              >
+                Sign In
+              </Link>
+            </p>
           </div>
-          {invalidPasswordMessage && (
-            <p className="text-red-600 text-sm">{invalidPasswordMessage}</p>
-          )}
-          <button
-            type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium transition-colors duration-200"
-            onClick={handleSignup}
-          >
-            Sign Up
-          </button>
-        </form>
-        <p className="mt-6 text-center text-gray-600">
-          Already have an account?{" "}
-          <Link to="/login" className="text-blue-600 hover:text-blue-700 font-medium">
-            Login
-          </Link>
-        </p>
+        </div>
       </div>
     </div>
   );

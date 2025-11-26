@@ -1,9 +1,9 @@
-// Connection.jsx
 import React, { useEffect } from 'react'
 import { api } from '../utils/api'
 import { addConnection } from "../utils/connectionSlice"
 import { useDispatch, useSelector } from 'react-redux';
 import ConnectionCard from './ConnectionCard';
+import { Network, Users } from 'lucide-react';
 
 const Connection = () => {
   const dispatch = useDispatch();
@@ -23,15 +23,32 @@ const Connection = () => {
   }, [])
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Connections</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {connectionData && connectionData.map((res) => (
-          <ConnectionCard key={res._id} user={res} />
-        ))}
-        {!connectionData?.length && (
-          <div className="col-span-full text-center py-12">
-            <p className="text-gray-500 text-lg">No Connections</p>
+    <div className="max-w-6xl mx-auto px-4 py-8">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent flex items-center gap-3">
+            <Network className="w-8 h-8 text-primary" />
+            My Network
+          </h1>
+          <p className="text-base-content/60 mt-1">People you are connected with</p>
+        </div>
+        <div className="glass px-4 py-2 rounded-xl text-sm font-medium text-base-content/80">
+          {connectionData?.length || 0} Connections
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {connectionData && connectionData.length > 0 ? (
+          connectionData.map((res) => (
+            <ConnectionCard key={res._id} user={res} />
+          ))
+        ) : (
+          <div className="col-span-full glass-card p-12 text-center border-dashed border-2 border-base-content/10">
+            <div className="w-16 h-16 bg-base-content/5 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Users className="w-8 h-8 text-base-content/40" />
+            </div>
+            <h3 className="text-lg font-semibold text-base-content mb-2">No connections yet</h3>
+            <p className="text-base-content/50">Start connecting with peers to build your network.</p>
           </div>
         )}
       </div>

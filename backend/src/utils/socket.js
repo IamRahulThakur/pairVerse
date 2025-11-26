@@ -53,15 +53,13 @@ const initialiseSocket = (server) => {
 
                 await chat.save();
 
-                // Get the last inserted message (with DB timestamp)
                 const newMessage = chat.messages[chat.messages.length - 1];
 
-                // Emit with timestamp
                 io.to(roomId).emit("messageReceived", {
                     firstName,
                     text: newMessage.text,
                     senderId: newMessage.senderId,
-                    timestamp: newMessage.createdAt, // exact DB time
+                    timestamp: newMessage.createdAt,
                 });
             } catch (error) {
             console.log(error.message);

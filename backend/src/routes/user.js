@@ -4,6 +4,7 @@ import { ConnectionRequestModel } from "../model/connectionRequest.js";
 import { UserModel } from "../model/user.js";
 import { notificationModel } from "../model/notifications.js";
 import { PostModel } from "../model/post.js";
+import { uploadPost } from "../middlewares/uploadPost.js";
 
 const userRouter = express.Router();
 
@@ -67,24 +68,21 @@ userRouter.get("/user/connections", userAuth, async (req, res) => {
 userRouter.get("/user/notifications", userAuth, async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    let limit = parseInt(req.query.limit) || 2;
-    limit = limit > 20 ? 20 : limit;
+    let limit = parseInt(req.query.limit) || 10;
+    limit = limit > 50 ? 50 : limit;
     const skip = (page - 1) * limit;
-    // Whenever user click He sees all Notification whose
-    // Status are unread we display only Notifiation Title
+
+    // Return all notifications (read and unread) sorted by newest first
     const notifications = await notificationModel
       .find({
         toUserId: req.user._id,
-        status: "unread",
       })
+      .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
 
-    if (notifications.length === 0) {
-      return res.status(200).send("No unread notifications");
-    }
-
-    res.send(notifications.map((notification) => notification.title));
+    // Return full notification objects
+    res.send(notifications);
   } catch (err) {
     res.status(500).send({ error: err.message });
   }
@@ -159,49 +157,93 @@ userRouter.patch(
   }
 );
 
-// User Create a Post on plateform
-userRouter.post("/user/posts/create", userAuth, async (req, res) => {
-  try {
-    const user = req.user;
-    const { title, content } = req.body;
+// User creates a Post (text + media)
+userRouter.post(
+  "/user/posts/create",
+  userAuth,
+  uploadPost.array("media", 5), // allows up to 5 files
+  async (req, res) => {
+    try {
+      const user = req.user;
+      const { title, content } = req.body;
 
-    if (!title || !content) {
-      return res.status(400).send({ error: "Title and content are required" });
+      // Ensure there’s at least text or media
+      if (!title && !content && (!req.files || req.files.length === 0)) {
+        return res
+          .status(400)
+          .json({ error: "Post must have text, media, or both" });
+      }
+
+      // Collect uploaded media info
+      const media = req.files?.map((file) => ({
+        url: file.path, // Cloudinary URL
+        type: file.mimetype.startsWith("video") ? "video" : "image",
+        public_id: file.filename, // needed if you later want to delete media
+      })) || [];
+
+      // Create new post
+      const newPost = new PostModel({
+        title,
+        content,
+        userId: user._id,
+        media,
+      });
+
+      await newPost.save();
+
+      res.status(201).json({
+        message: "Post created successfully",
+        post: newPost,
+      });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
     }
-
-    const newPost = new PostModel({
-      title,
-      content,
-      userId: user._id,
-    });
-
-    await newPost.save();
-    res.status(201).send(newPost);
-  } catch (error) {
-    res.status(500).send({ error: error.message });
   }
-});
+);
+
 
 // User delete his post
 userRouter.delete("/user/posts/delete/:postId", userAuth, async (req, res) => {
   try {
-    const postId = req.params.postId;
+    const { postId } = req.params;
+    console.log("Deleting post:", postId);
+
     if (!postId) {
-      res.status(400).send({ error: "Post ID is required" });
+      return res.status(400).send({ error: "Post ID is required" });
     }
+
     const post = await PostModel.findById(postId);
     if (!post) {
-      res.status(404).send({ error: "Post not found" });
+      return res.status(404).send({ error: "Post not found" });
     }
+
     if (post.userId.toString() !== req.user._id.toString()) {
       return res
         .status(403)
         .send({ error: "You are not authorized to delete this post" });
     }
 
+    // Delete all media from Cloudinary
+    if (post.media && post.media.length > 0) {
+      console.log("Deleting media files:", post.media);
+      for (const item of post.media) {
+        if (item.public_id) {
+          try {
+            await cloudinary.uploader.destroy(item.public_id);
+            console.log("Deleted media from Cloudinary:", item.public_id);
+          } catch (cloudinaryError) {
+            console.error("Cloudinary deletion error:", cloudinaryError);
+            // Continue with post deletion even if Cloudinary fails
+          }
+        }
+      }
+    }
+
     await PostModel.findByIdAndDelete(postId);
+    console.log("Post deleted successfully from database");
     res.status(200).send({ message: "Post deleted successfully" });
   } catch (error) {
+    console.error("Delete post error:", error);
     res.status(500).send({ error: error.message });
   }
 });
@@ -233,6 +275,7 @@ userRouter.get("/user/posts/feed", userAuth, async (req, res) => {
       },
     })
       .populate("userId", USER_SAFE_DATA)
+      .select("content media likes commentsCount createdAt userId")
       .sort({ createdAt: -1 });
 
     res.status(200).send(feedData);
@@ -247,6 +290,7 @@ userRouter.get("/user/posts", userAuth, async (req, res) => {
 
     const feedData = await PostModel.find({ userId: userId })
       .populate("userId", USER_SAFE_DATA)
+      .select("content media likes commentsCount createdAt visibility")
       .sort({ createdAt: -1 });
 
     res.send(feedData);
@@ -259,7 +303,7 @@ userRouter.get("/user/matchingpeers", userAuth, async (req, res) => {
   try {
     const userId = req.user._id;
 
-    // Step 1: Get current user
+    // Get current user
     const baseUser = await UserModel.findById(userId).lean();
     if (!baseUser || !baseUser.techStack) {
       return res.status(404).send({ error: "User not found or no tech stack available" });
@@ -267,7 +311,7 @@ userRouter.get("/user/matchingpeers", userAuth, async (req, res) => {
 
     const userTechStack = baseUser.techStack;
 
-    // Step 2: Get all users who already have a connection request with this user
+    // Get all users who already have a connection request with this user
     const existingConnections = await ConnectionRequestModel.find({
       $or: [
         { fromUserId: userId },
@@ -282,13 +326,13 @@ userRouter.get("/user/matchingpeers", userAuth, async (req, res) => {
         : conn.fromUserId
     );
 
-    // Step 3: Aggregation for matching users
+    // Aggregation for matching users
     const matches = await UserModel.aggregate([
       {
         $match: {
-          _id: { 
-            $ne: baseUser._id,           // exclude self
-            $nin: excludeUserIds        // exclude existing/pending connections
+          _id: {
+            $ne: baseUser._id,
+            $nin: excludeUserIds
           },
         },
       },
@@ -330,13 +374,13 @@ userRouter.get("/user/matchingpeers", userAuth, async (req, res) => {
 userRouter.get("/search/:username", userAuth, async (req, res) => {
   try {
     const { username } = req.params;
-    
-    if(username == req.user.username){
+
+    if (username == req.user.username) {
       return res.status(200).json([]);
     }
 
-    const regex = new RegExp(username, 'i'); // Case-insensitive search
-    
+    const regex = new RegExp(username, 'i');
+
     const users = await UserModel.find({
       username: { $regex: regex }
     }).select(USER_SAFE_DATA);
@@ -346,7 +390,7 @@ userRouter.get("/search/:username", userAuth, async (req, res) => {
     res.status(200).json(users);
   } catch (error) {
     res.status(500).json({ error: error.message });
-  }     
+  }
 });
 
 export default userRouter;
