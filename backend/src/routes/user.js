@@ -5,6 +5,8 @@ import { UserModel } from "../model/user.js";
 import { notificationModel } from "../model/notifications.js";
 import { PostModel } from "../model/post.js";
 import { uploadPost } from "../middlewares/uploadPost.js";
+import redis from "../config/redis.js"
+
 
 const userRouter = express.Router();
 
@@ -39,6 +41,14 @@ userRouter.get("/user/requests/received", userAuth, async (req, res) => {
 // Get Connection List
 userRouter.get("/user/connections", userAuth, async (req, res) => {
   try {
+
+     const key = `connections:${req.user._id}`;
+
+    // 1. Try cache
+    const cached = await redis.get(key);
+    if (cached) return res.json(JSON.parse(cached));
+
+
     // DB se vo id nikalni hai jisme toUserId login person
     // ki userId hai and status accepted hai
     const connectionData = await ConnectionRequestModel.find({
@@ -57,7 +67,7 @@ userRouter.get("/user/connections", userAuth, async (req, res) => {
         return row.toUserId;
       }
     });
-
+    await redis.set(key, JSON.stringify(data), "EX", 100);
     res.send(data);
   } catch (error) {
     res.status(500).send({ error: error.message });
