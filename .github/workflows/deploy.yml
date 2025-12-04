@@ -10,9 +10,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+
+      # ----------------------------------------
+      # 1. Checkout Repository Code
+      # ----------------------------------------
       - name: Checkout Code
         uses: actions/checkout@v3
 
+      # ----------------------------------------
+      # 2. Configure SSH Key to Login to EC2
+      # ----------------------------------------
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
@@ -20,6 +27,9 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
+      # ----------------------------------------
+      # 3. Connect to EC2 & Deploy
+      # ----------------------------------------
       - name: Deploy to EC2
         run: |
           ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
@@ -29,20 +39,27 @@ jobs:
           cd ~/pairVerse
           git pull origin main
 
-          # ---- Frontend Build ----
+          # ---- FRONTEND ----
           cd frontend
           npm install --force
           npm run build
           sudo rm -rf /var/www/html/*
           sudo cp -r dist/* /var/www/html/
 
-          # ---- Backend Deploy ----
+          # ---- BACKEND ----
           cd ~/pairVerse/backend
           npm install --force
+
+          # Write .env from GitHub secret
+          echo "${{ secrets.BACKEND_ENV_FILE }}" > .env
+
           pm2 restart backend --update-env || pm2 start src/app.js --name backend
           pm2 save
           EOF
 
+      # ----------------------------------------
+      # 4. Telegram Success Notification
+      # ----------------------------------------
       - name: Notify Telegram on Success
         if: success()
         run: |
@@ -50,6 +67,9 @@ jobs:
           -d chat_id="${{ secrets.TG_CHAT_ID }}" \
           -d text="🚀 Deployment successful for PairVerse!"
 
+      # ----------------------------------------
+      # 5. Telegram Failure Notification
+      # ----------------------------------------
       - name: Notify Telegram on Failure
         if: failure()
         run: |
