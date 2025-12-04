@@ -20,29 +20,30 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
+      - name: Test SSH Connection
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "echo 'SSH Connected Successfully ✔'"
+
       - name: Deploy to EC2
         run: |
           ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
           cd ~/pairVerse
           git pull origin main
 
-          # Frontend build
+          # Frontend
           cd frontend
           npm install --force
           npm run build
           sudo rm -rf /var/www/html/*
           sudo cp -r dist/* /var/www/html/
 
-          # Backend deploy
+          # Backend
           cd ~/pairVerse/backend
           npm install --force
           pm2 restart backend --update-env || pm2 start src/app.js --name backend
           pm2 save
           EOF
 
-      # -----------------------------------------
-      # Telegram Notifications
-      # -----------------------------------------
       - name: Notify Telegram on Success
         if: success()
         run: |
