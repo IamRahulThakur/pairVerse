@@ -24,11 +24,11 @@ app.use(express.json()); // Middleware to parse JSON bodies
 app.use(cookieParser()); // Middleware to parse cookies
 
 
-app.use('/', authRouter);
-app.use('/', profileRouter);
-app.use('/', requestRouter);
-app.use('/', userRouter);
-app.use('/', chatRouter);
+app.use('/api', authRouter);
+app.use('/api', profileRouter);
+app.use('/api', requestRouter);
+app.use('/api', userRouter);
+app.use('/api', chatRouter);
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
