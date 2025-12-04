@@ -11,12 +11,14 @@ const getHashedRoomId = (userId, targetUserId) => {
 };
 
 const initialiseSocket = (server) => {
-  const io = new Server(server, {
+    const io = new Server(server, {
     cors: {
-      origin: "http://localhost:5173",
+      origin: "*",
       credentials: true,
     },
+    path: "/api/socket.io",
   });
+
 
   io.on("connection", (socket) => {
     // Handle Events
