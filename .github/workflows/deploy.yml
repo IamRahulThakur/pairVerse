@@ -13,29 +13,34 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Setup SSH Key
+      - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Test SSH Connection
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "echo 'SSH Connected Successfully ✔'"
-
       - name: Deploy to EC2
         run: |
           ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+          
+          # Load NVM so node, npm, pm2 become available
+          export NVM_DIR="$HOME/.nvm"
+          source "$NVM_DIR/nvm.sh"
+          nvm use 23 || true
+
           cd ~/pairVerse
           git pull origin main
 
+          # --- Frontend ---
           cd frontend
           npm install --force
           npm run build
+
           sudo rm -rf /var/www/html/*
           sudo cp -r dist/* /var/www/html/
 
+          # --- Backend ---
           cd ~/pairVerse/backend
           npm install --force
           pm2 restart backend --update-env || pm2 start src/app.js --name backend
