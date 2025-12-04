@@ -22,22 +22,20 @@ jobs:
 
       - name: Test SSH Connection
         run: |
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "echo 'SSH Connected Successfully ✔'"
+          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "echo 'SSH Connected Successfully ✔'"
 
       - name: Deploy to EC2
         run: |
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
           cd ~/pairVerse
           git pull origin main
 
-          # FRONTEND DEPLOYMENT
           cd frontend
           npm install --force
           npm run build
           sudo rm -rf /var/www/html/*
           sudo cp -r dist/* /var/www/html/
 
-          # BACKEND DEPLOYMENT
           cd ~/pairVerse/backend
           npm install --force
           pm2 restart backend --update-env || pm2 start src/app.js --name backend
