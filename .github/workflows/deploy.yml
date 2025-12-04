@@ -1,0 +1,58 @@
+name: Deploy To EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to EC2
+        run: |
+          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+          cd ~/pairVerse
+          git pull origin main
+
+          # Frontend build
+          cd frontend
+          npm install --force
+          npm run build
+          sudo rm -rf /var/www/html/*
+          sudo cp -r dist/* /var/www/html/
+
+          # Backend deploy
+          cd ~/pairVerse/backend
+          npm install --force
+          pm2 restart backend --update-env || pm2 start src/app.js --name backend
+          pm2 save
+          EOF
+
+      # -----------------------------------------
+      # Telegram Notifications
+      # -----------------------------------------
+      - name: Notify Telegram on Success
+        if: success()
+        run: |
+          curl -s -X POST https://api.telegram.org/bot${{ secrets.TG_BOT_TOKEN }}/sendMessage \
+          -d chat_id="${{ secrets.TG_CHAT_ID }}" \
+          -d text="🚀 Deployment successful for PairVerse!"
+
+      - name: Notify Telegram on Failure
+        if: failure()
+        run: |
+          curl -s -X POST https://api.telegram.org/bot${{ secrets.TG_BOT_TOKEN }}/sendMessage \
+          -d chat_id="${{ secrets.TG_CHAT_ID }}" \
+          -d text="❌ Deployment FAILED for PairVerse. Check workflow logs."
