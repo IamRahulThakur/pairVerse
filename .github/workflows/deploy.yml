@@ -13,7 +13,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Setup SSH
+      - name: Setup SSH Key
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
@@ -22,22 +22,22 @@ jobs:
 
       - name: Test SSH Connection
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "echo 'SSH Connected Successfully ✔'"
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "echo 'SSH Connected Successfully ✔'"
 
       - name: Deploy to EC2
         run: |
-          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
           cd ~/pairVerse
           git pull origin main
 
-          # Frontend
+          # FRONTEND DEPLOYMENT
           cd frontend
           npm install --force
           npm run build
           sudo rm -rf /var/www/html/*
           sudo cp -r dist/* /var/www/html/
 
-          # Backend
+          # BACKEND DEPLOYMENT
           cd ~/pairVerse/backend
           npm install --force
           pm2 restart backend --update-env || pm2 start src/app.js --name backend
