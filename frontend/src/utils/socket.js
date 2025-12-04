@@ -3,11 +3,16 @@ import { BASEURL } from "./api";
 
 export const createSocketConnection = () => {
   if (location.hostname === "localhost") {
-    return io(BASEURL, {
+    return io("http://localhost:3000", {
       withCredentials: true,
+      transports: ["websocket"],
+      path: "/socket.io"
     });
   }
-  else {
-    return io("/", { path: "/socket.io" });
-  }
+
+  return io("/", {
+    transports: ["websocket"],
+    withCredentials: true,
+    path: "/socket.io"
+  });
 };
