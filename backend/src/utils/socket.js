@@ -11,13 +11,14 @@ const getHashedRoomId = (userId, targetUserId) => {
 };
 
 const initialiseSocket = (server) => {
-    const io = new Server(server, {
+      const io = new Server(server, {
     cors: {
       origin: "*",
       credentials: true,
     },
-    path: "/api/socket.io",
+    path: "/socket.io",
   });
+
 
 
   io.on("connection", (socket) => {
