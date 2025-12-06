@@ -10,7 +10,8 @@ import cors from 'cors'
 import http from 'http'
 import initialiseSocket from "./utils/socket.js";
 import chatRouter from "./routes/chat.js";
-
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
 
 export const app = express();
 
@@ -20,9 +21,23 @@ app.use(cors(
     credentials: true,
   }
 ));
-app.use(express.json()); // Middleware to parse JSON bodies
-app.use(cookieParser()); // Middleware to parse cookies
+app.use(express.json()); 
+app.use(cookieParser());
 
+
+app.use(helmet());
+
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  standardHeaders: true, 
+  legacyHeaders: false, 
+});
+
+app.set('trust proxy', 1);
+
+app.use(limiter);
 
 app.use('/api', authRouter);
 app.use('/api', profileRouter);
