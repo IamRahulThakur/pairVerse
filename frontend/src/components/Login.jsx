@@ -15,18 +15,34 @@ const Login = () => {
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
-    e.preventDefault();
-    try {
-      const response = await api.post("/login", { emailId, password });
-      dispatch(addUser(response.data));
-      toast.success("Welcome back!");
-      return navigate("/feed");
-    } catch (error) {
-      setErrorMessage(
-        error?.response?.data.message || "Login failed. Please try again"
-      );
+  e.preventDefault();
+  try {
+    const response = await api.post("/login", { emailId, password });
+    dispatch(addUser(response.data));
+    toast.success("Welcome back!");
+    return navigate("/feed");
+  } catch (error) {
+    // 1. Get the status code from the response
+    const status = error.response?.status;
+    let userFriendlyMessage = "Login failed. Please try again.";
+
+    // 2. Use the status code (which we control from the Backend)
+    if (status === 401) {
+      // Backend returns 401 for "Invalid credentials"
+      userFriendlyMessage = "Invalid email or password. Check your details.";
+    } else if (status === 400) {
+      // Backend returns 400 for validation errors (though less likely in login, still good practice)
+      userFriendlyMessage = error.response.data.error || "Missing required fields.";
+    } else if (status >= 500) {
+      // 5xx errors mean internal server issues
+      userFriendlyMessage = "Server unavailable. Please try again later.";
+    } else if (error.response?.data?.error) {
+      // Fallback: Use the specific message provided by the Backend body
+      userFriendlyMessage = error.response.data.error;
     }
-  };
+    setErrorMessage(userFriendlyMessage);
+  }
+};
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-4 py-12">

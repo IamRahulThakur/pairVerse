@@ -1,68 +1,15 @@
 import express from "express";
-import { UserModel } from "../model/user.js";
-import { validateSignupData } from "../utils/validation.js";
-import bcrypt from "bcrypt";
+
 import { userAuth } from "../middlewares/auth.js";
+import { loginHandler, logoutHandler, signupHandler } from "../controllers/authController.js";
+
 
 const authRouter = express.Router();
 
-authRouter.post("/signup", async (req, res) => {
-  // Validate signup data
-  try {
-    // Validating the user input
-    await validateSignupData(req);
-    
-    // Encrypt the password
-    const { emailId, password } = req.body;
-    const hashedPassword = await bcrypt.hash(password, 10);
+authRouter.post("/signup", signupHandler);
 
+authRouter.post("/login", loginHandler);
 
-    // Creating a new user
-    const user = new UserModel({
-      emailId,
-      password: hashedPassword,
-    });
-    await user.save();
-    const token = await user.getJwtToken();
-    // Add Token to cookie and send response back to user
-    res.cookie("token" , token);
-    res.send(user);
-  } catch (error) {
-    return res.status(400).send({ error: error.message });
-  }
-});
-
-authRouter.post("/login", async (req, res) => {
-  const { emailId, password } = req.body;
-
-  try {
-    // Find user by email and Validating correct User
-    const user = await UserModel.findOne({ emailId });
-    if (!user) {
-      return res.status(401).send({ message: "Invalid credentials" });
-    }
-
-    // Compare passwords
-    const isPasswordValid = await user.validatePassword(password);
-    if(isPasswordValid) {
-      // Create JWT Token 
-      const token = await user.getJwtToken();
-      // Add Token to cookie and send response back to user
-      res.cookie("token" , token);
-
-      res.send(user);
-    }
-    else {
-      return res.status(401).send({ message: "Invalid credentials" });
-    }
-  } catch (error) {
-    res.status(500).send({ error: error.message });
-  }
-});
-
-authRouter.post("/logout",userAuth , async(req, res) => {
-    res.clearCookie('token');
-    res.send("Logged out Successfully......");
-});
+authRouter.post("/logout", userAuth , logoutHandler);
 
 export default authRouter;
