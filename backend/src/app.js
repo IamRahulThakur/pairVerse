@@ -45,9 +45,27 @@ app.use('/api', requestRouter);
 app.use('/api', userRouter);
 app.use('/api', chatRouter);
 
+
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ error: "Something went wrong!" });
+  
+  const statusCode = err.statusCode || 500;
+  const status = err.status || 'error';
+
+  if (statusCode === 500) {
+    console.error('SERVER ERROR 💥:', err.stack);
+  }
+  
+  if (err.isOperational) {
+    res.status(statusCode).json({
+      status: status,
+      message: err.message, 
+    });
+  } else {
+    res.status(500).json({
+      status: 'error',
+      message: 'Something went very wrong! Please try again later.',
+    });
+  }
 });
 
 const server = http.createServer(app);

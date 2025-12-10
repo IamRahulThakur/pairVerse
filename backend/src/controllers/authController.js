@@ -1,6 +1,6 @@
 import { loginService, signupService } from "../services/authService.js";
 
-export const signupHandler = async (req, res) => {
+export const signupHandler = async (req, res, next) => {
     try {
         const { emailId, password } = req.body;
 
@@ -11,11 +11,11 @@ export const signupHandler = async (req, res) => {
         res.send(user);
     } 
     catch (error) {
-        return res.status(400).send({ error: error.message });
+        next(error);
     }
 };
 
-export const loginHandler = async (req, res) => {
+export const loginHandler = async (req, res, next) => {
     
     try {
         const { emailId, password } = req.body;
@@ -24,12 +24,7 @@ export const loginHandler = async (req, res) => {
         res.cookie("token" , token);
         res.send(user);
     } catch (error) {
-        
-        if (error.message === "Invalid credentials") {
-            return res.status(401).send({ error: error.message });
-        }
-        
-        res.status(500).send({ error: error.message });
+        next(error);
     }
 };
 
