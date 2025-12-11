@@ -19,6 +19,19 @@ import {
   Clock
 } from "lucide-react";
 
+// Moved Section component outside to prevent re-renders losing focus
+const Section = ({ title, icon: Icon, children }) => (
+  <div className="glass-card p-6 mb-6">
+    <h3 className="text-lg font-semibold text-base-content mb-6 flex items-center gap-2 border-b border-base-content/5 pb-4">
+      <div className="p-2 rounded-lg bg-primary/10 text-primary">
+        <Icon className="w-5 h-5" />
+      </div>
+      {title}
+    </h3>
+    {children}
+  </div>
+);
+
 const EditProfile = () => {
   const profile = useSelector((store) => store.user);
   const dispatch = useDispatch();
@@ -144,18 +157,6 @@ const EditProfile = () => {
 
   const addTech = () => setTechStack([...techStack, ""]);
   const removeTech = (index) => setTechStack(techStack.filter((_, i) => i !== index));
-
-  const Section = ({ title, icon: Icon, children }) => (
-    <div className="glass-card p-6 mb-6">
-      <h3 className="text-lg font-semibold text-base-content mb-6 flex items-center gap-2 border-b border-base-content/5 pb-4">
-        <div className="p-2 rounded-lg bg-primary/10 text-primary">
-          <Icon className="w-5 h-5" />
-        </div>
-        {title}
-      </h3>
-      {children}
-    </div>
-  );
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
