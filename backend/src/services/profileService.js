@@ -2,6 +2,7 @@ import { UserModel } from "../model/user.js";
 import validator from "validator";
 import bcrypt from "bcrypt";
 import { BadRequestError, ConflictError, NotFoundError } from "../utils/appError.js";
+import redis from "../config/redis.js";
 
 export const getProfileService = async (userId) => {
   return await UserModel.findById(userId, {
@@ -41,6 +42,9 @@ export const editProfileService = async (userId, data , reqFile) => {
   if (reqFile && reqFile.path) {
     data.photourl = reqFile.path;
   }
+
+  await redis.del(`matchingPeers:${userId}`);
+
   return await UserModel.findByIdAndUpdate(userId, data, {
     new: true,
     runValidators: true,

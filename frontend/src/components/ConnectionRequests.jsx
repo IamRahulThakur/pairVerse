@@ -3,13 +3,11 @@ import { api } from '../utils/api';
 import { useDispatch, useSelector } from 'react-redux';
 import { addRequest } from '../utils/requestSlice'
 import RequestCard from './RequestCard';
-import { useNavigate } from 'react-router-dom';
 import { Bell, UserPlus } from 'lucide-react';
 
 const ConnectionRequests = () => {
   const dispatch = useDispatch();
   const requests = useSelector((store) => store.request);
-  const navigate = useNavigate();
 
   const fetchRequests = async () => {
     try {

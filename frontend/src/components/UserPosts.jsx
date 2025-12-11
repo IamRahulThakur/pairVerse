@@ -10,7 +10,8 @@ import {
   ChevronRight,
   Globe,
   Lock,
-  Users
+  Users,
+  X
 } from "lucide-react";
 
 const UserPostCard = ({ post, onDelete }) => {
@@ -37,6 +38,7 @@ const UserPostCard = ({ post, onDelete }) => {
     try {
       await onDelete(post._id);
     } catch (error) {
+      console.error(error);
       toast.error("Failed to delete post");
       setIsDeleting(false);
       setShowDeleteConfirm(false);
@@ -199,15 +201,6 @@ const UserPostCard = ({ post, onDelete }) => {
 };
 
 // Helper component for X icon since it wasn't imported in the original
-const X = ({ className }) => (
-  <svg
-    className={className}
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-  </svg>
-);
+
 
 export default UserPostCard;

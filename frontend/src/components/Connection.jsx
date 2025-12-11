@@ -37,13 +37,15 @@ const Connection = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-sm border border-slate-200/60 overflow-hidden">
         {connectionData && connectionData.length > 0 ? (
-          connectionData.map((res) => (
-            <ConnectionCard key={res._id} user={res} />
-          ))
+          <div className="divide-y divide-slate-100">
+            {connectionData.map((res) => (
+              <ConnectionCard key={res._id} user={res} />
+            ))}
+          </div>
         ) : (
-          <div className="col-span-full bg-white rounded-2xl border border-dashed border-slate-200 p-12 text-center">
+          <div className="p-12 text-center">
             <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
               <Users className="w-8 h-8 text-slate-400" />
             </div>

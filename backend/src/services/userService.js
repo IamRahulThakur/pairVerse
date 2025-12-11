@@ -17,6 +17,7 @@ const USER_SAFE_DATA = [
   "experienceLevel",
   "linkedIn",
   "Github",
+  "domain"
 ];
 
 export const getRequestService = async (userId) => {
@@ -128,6 +129,27 @@ export const createPostService = async (user, title, content, reqFiles) => {
     media,
   });
 
+  const userConnection = await ConnectionRequestModel.find({
+    $or: [
+      { toUserId: user._id, status: "accepted" },
+      { fromUserId: user._id, status: "accepted" },
+    ],
+  });
+
+  const connectionIds = userConnection.map((conn) =>
+    conn.toUserId.toString() === user._id.toString()
+      ? conn.fromUserId
+      : conn.toUserId
+  );
+
+  const idsToInvalidate = [...connectionIds, userId.toString()];
+
+  const redisKeys = idsToInvalidate.map(id => `feed:${id}`);
+
+  if (redisKeys.length > 0) {
+      await redis.del(...redisKeys); 
+  }
+
   await newPost.save();
   return newPost;
 };
@@ -158,12 +180,37 @@ export const deletePostService = async (postId, userId) => {
   }
 
   await PostModel.findByIdAndDelete(postId);
+    const userConnection = await ConnectionRequestModel.find({
+    $or: [
+      { toUserId: user._id, status: "accepted" },
+      { fromUserId: user._id, status: "accepted" },
+    ],
+  });
+
+  const connectionIds = userConnection.map((conn) =>
+    conn.toUserId.toString() === user._id.toString()
+      ? conn.fromUserId
+      : conn.toUserId
+  );
+
+  const idsToInvalidate = [...connectionIds, userId.toString()];
+
+  const redisKeys = idsToInvalidate.map(id => `feed:${id}`);
+
+  if (redisKeys.length > 0) {
+      await redis.del(...redisKeys); 
+  }
 };
 
 export const generateFeedService = async (user) => {
   if (!user) {
     throw new UnauthorisedError("Unauthorized");
   }
+  const key = `feed:${user._id}`;
+  
+  const cached = await redis.get(key);
+  if (cached) return JSON.parse(cached);
+
   const connectionData = await ConnectionRequestModel.find({
     $or: [
       { toUserId: user._id, status: "accepted" },
@@ -187,6 +234,8 @@ export const generateFeedService = async (user) => {
     .populate("userId", USER_SAFE_DATA)
     .select("content media likes commentsCount createdAt userId")
     .sort({ createdAt: -1 });
+
+  await redis.set(key, JSON.stringify(feedData), "EX", 120);
   return feedData;
 };
 
@@ -205,6 +254,11 @@ export const findMatchingPeersService = async (userId) => {
   if (!baseUser || !baseUser.techStack) {
     throw new NotFoundError("User not found or tech stack is empty");
   }
+
+  const key = `matchingPeers:${userId}`;
+
+  const cached = await redis.get(key);
+  if (cached) return JSON.parse(cached);
 
   const userTechStack = baseUser.techStack;
 
@@ -257,6 +311,9 @@ export const findMatchingPeersService = async (userId) => {
       },
     },
   ]);
+
+  await redis.set(key, JSON.stringify(matches), "EX", 300);
+
   return matches;
 };
 

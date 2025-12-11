@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { api } from "../utils/api";
 import { useNavigate } from "react-router-dom";
-import { Sparkles, UserPlus, Code, Search } from "lucide-react";
+import { Sparkles, UserPlus, Search } from "lucide-react";
 
 const MatchingPeers = () => {
   const [peers, setPeers] = useState([]);
@@ -35,9 +35,9 @@ const MatchingPeers = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="relative w-16 h-16">
-          <div className="absolute inset-0 border-4 border-primary/20 rounded-full"></div>
-          <div className="absolute inset-0 border-4 border-primary rounded-full border-t-transparent animate-spin"></div>
+        <div className="relative w-12 h-12">
+          <div className="absolute inset-0 border-4 border-indigo-100 rounded-full"></div>
+          <div className="absolute inset-0 border-4 border-indigo-600 rounded-full border-t-transparent animate-spin"></div>
         </div>
       </div>
     );
@@ -46,25 +46,25 @@ const MatchingPeers = () => {
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
       {/* Header */}
-      <div className="mb-8 text-center max-w-2xl mx-auto">
-        <div className="inline-flex items-center justify-center p-3 bg-primary/10 rounded-full mb-4">
-          <Sparkles className="w-8 h-8 text-primary" />
+      <div className="mb-10 text-center max-w-2xl mx-auto">
+        <div className="inline-flex items-center justify-center p-3 bg-indigo-50 rounded-2xl mb-4 border border-indigo-100">
+          <Sparkles className="w-6 h-6 text-indigo-600" />
         </div>
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent mb-3">
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent mb-3 tracking-tight">
           Discover Peers
         </h1>
-        <p className="text-base-content/60 text-lg">
+        <p className="text-slate-500 text-lg leading-relaxed">
           Connect with developers who share your interests and tech stack
         </p>
       </div>
 
       {peers.length === 0 ? (
-        <div className="glass-card p-12 text-center max-w-md mx-auto">
-          <div className="w-20 h-20 bg-base-content/5 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Search className="w-10 h-10 text-base-content/40" />
+        <div className="bg-white rounded-2xl border border-dashed border-slate-200 p-12 text-center max-w-md mx-auto shadow-sm">
+          <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Search className="w-8 h-8 text-slate-400" />
           </div>
-          <h3 className="text-xl font-bold text-base-content mb-2">No new peers found</h3>
-          <p className="text-base-content/60">
+          <h3 className="text-xl font-bold text-slate-900 mb-2">No new peers found</h3>
+          <p className="text-slate-500">
             We couldn't find any new matches right now. Check back later!
           </p>
         </div>
@@ -73,32 +73,32 @@ const MatchingPeers = () => {
           {peers.map((user) => (
             <div
               key={user._id}
-              className="glass-card p-6 flex flex-col items-center text-center group hover:border-primary/30 transition-all duration-300"
+              className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col items-center text-center group hover:shadow-lg hover:border-indigo-100 transition-all duration-300"
             >
               <div
-                className="relative mb-4 cursor-pointer"
+                className="relative mb-5 cursor-pointer"
                 onClick={() => navigate(`/profile/${user._id}`)}
               >
-                <div className="w-24 h-24 rounded-full p-1 glass group-hover:bg-primary/10 transition-colors">
+                <div className="w-24 h-24 rounded-full p-1 bg-white border border-slate-100 group-hover:border-indigo-200 transition-colors">
                   <img
                     src={user.photourl || "https://placeimg.com/100/100/people"}
                     alt={`${user.firstName} ${user.lastName}`}
-                    className="w-full h-full rounded-full object-cover"
+                    className="w-full h-full rounded-full object-cover bg-slate-50"
                   />
                 </div>
-                <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-secondary text-white text-xs font-bold px-2 py-0.5 rounded-full border-2 border-base-100 shadow-sm whitespace-nowrap">
+                <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-indigo-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-full border-2 border-white shadow-sm whitespace-nowrap tracking-wide uppercase">
                   {user.matchCount} {user.matchCount === 1 ? 'Match' : 'Matches'}
                 </div>
               </div>
 
               <h3
-                className="font-bold text-lg text-base-content mb-1 cursor-pointer hover:text-primary transition-colors"
+                className="font-bold text-lg text-slate-900 mb-1 cursor-pointer hover:text-indigo-600 transition-colors"
                 onClick={() => navigate(`/profile/${user._id}`)}
               >
                 {user.firstName} {user.lastName}
               </h3>
 
-              <p className="text-base-content/60 text-sm mb-4 line-clamp-1">
+              <p className="text-slate-500 text-sm mb-4 line-clamp-1 font-medium">
                 {user.domain || "Developer"}
               </p>
 
@@ -107,13 +107,13 @@ const MatchingPeers = () => {
                 {user.commonTechs?.slice(0, 3).map((tech, idx) => (
                   <span
                     key={idx}
-                    className="px-2 py-1 bg-base-content/5 text-base-content/70 rounded-md text-xs font-medium border border-base-content/5"
+                    className="px-2.5 py-1 bg-slate-50 text-slate-600 rounded-lg text-xs font-medium border border-slate-100"
                   >
                     {tech}
                   </span>
                 ))}
                 {user.commonTechs?.length > 3 && (
-                  <span className="px-2 py-1 bg-base-content/5 text-base-content/50 rounded-md text-xs font-medium">
+                  <span className="px-2.5 py-1 bg-slate-50 text-slate-400 rounded-lg text-xs font-medium border border-slate-100">
                     +{user.commonTechs.length - 3}
                   </span>
                 )}
@@ -121,7 +121,7 @@ const MatchingPeers = () => {
 
               <button
                 onClick={() => handleConnect(user._id)}
-                className="w-full btn-primary py-2.5 flex items-center justify-center gap-2 group-hover:scale-[1.02] transition-transform"
+                className="w-full py-2.5 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-700 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-sm shadow-indigo-200"
               >
                 <UserPlus className="w-4 h-4" />
                 Connect

@@ -9,7 +9,7 @@ const RequestCard = ({ user, onAccept, onReject }) => {
   if (user?.status !== "interested") return null;
 
   return (
-    <div className="glass-card p-4 flex items-center justify-between group hover:border-primary/20 transition-all duration-300">
+    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 flex items-center justify-between group hover:border-indigo-200 transition-all duration-300">
       <div
         className="flex items-center gap-4 cursor-pointer"
         onClick={() => navigate(`/profile/${fromUserId._id}`)}
@@ -18,18 +18,18 @@ const RequestCard = ({ user, onAccept, onReject }) => {
           <img
             src={fromUserId.photourl || "https://placeimg.com/80/80/people"}
             alt={`${fromUserId.firstName} ${fromUserId.lastName}`}
-            className="w-14 h-14 rounded-full object-cover border-2 border-base-content/10 group-hover:border-primary transition-colors"
+            className="w-14 h-14 rounded-full object-cover border-2 border-slate-100 group-hover:border-indigo-100 transition-colors"
           />
-          <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-primary rounded-full flex items-center justify-center text-white text-xs border-2 border-base-100">
+          <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-indigo-600 rounded-full flex items-center justify-center text-white text-xs border-2 border-white">
             <Briefcase className="w-3 h-3" />
           </div>
         </div>
 
         <div>
-          <h3 className="font-semibold text-lg text-base-content group-hover:text-primary transition-colors">
+          <h3 className="font-semibold text-lg text-slate-900 group-hover:text-indigo-600 transition-colors">
             {fromUserId.firstName} {fromUserId.lastName}
           </h3>
-          <p className="text-base-content/60 text-sm flex items-center gap-1">
+          <p className="text-slate-500 text-sm flex items-center gap-1">
             {fromUserId.domain || "Developer"}
           </p>
         </div>
@@ -37,14 +37,14 @@ const RequestCard = ({ user, onAccept, onReject }) => {
 
       <div className="flex gap-3">
         <button
-          className="p-2 rounded-xl bg-success/10 text-success hover:bg-success hover:text-white transition-all duration-200"
+          className="p-2.5 rounded-xl bg-emerald-50 text-emerald-600 hover:bg-emerald-500 hover:text-white transition-all duration-200 border border-emerald-100 shadow-sm"
           onClick={onAccept}
           title="Accept Request"
         >
           <Check className="w-5 h-5" />
         </button>
         <button
-          className="p-2 rounded-xl bg-error/10 text-error hover:bg-error hover:text-white transition-all duration-200"
+          className="p-2.5 rounded-xl bg-rose-50 text-rose-500 hover:bg-rose-500 hover:text-white transition-all duration-200 border border-rose-100 shadow-sm"
           onClick={onReject}
           title="Reject Request"
         >

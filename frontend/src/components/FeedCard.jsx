@@ -35,6 +35,7 @@ const FeedCard = ({ post }) => {
       }
       setIsLiked(!isLiked);
     } catch (error) {
+      console.error(error);
       toast.error("Failed to update like");
     }
   };
@@ -72,26 +73,25 @@ const FeedCard = ({ post }) => {
   };
 
   return (
-    <div className="glass-card mb-6 overflow-hidden">
+    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-md transition-shadow duration-200">
       {/* Header */}
-      <div className="p-5 flex items-center justify-between">
-        <div className="flex items-center gap-4 cursor-pointer group"
+      <div className="p-4 sm:p-5 flex items-center justify-between">
+        <div className="flex items-center gap-3 cursor-pointer group"
           onClick={() => navigate(`/profile/${userId._id}`)}>
           <div className="relative">
             <img
               src={userId?.photourl || "https://placeimg.com/80/80/people"}
               alt={`${userId?.firstName}`}
-              className="w-12 h-12 rounded-full object-cover border-2 border-transparent group-hover:border-primary transition-all shadow-sm"
+              className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border border-slate-100 group-hover:border-indigo-100 ring-2 ring-transparent group-hover:ring-indigo-50 transition-all"
             />
-            <div className="absolute inset-0 rounded-full border border-black/5"></div>
           </div>
           <div>
-            <h3 className="font-bold text-base-content text-lg group-hover:text-primary transition-colors">
+            <h3 className="font-semibold text-slate-900 text-base group-hover:text-indigo-600 transition-colors">
               {userId?.firstName} {userId?.lastName}
             </h3>
-            <div className="flex items-center gap-2 text-xs font-medium text-base-content/50">
+            <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
               <span>{formatTime(post.createdAt)}</span>
-              <span className="w-1 h-1 rounded-full bg-base-content/30"></span>
+              <span className="w-0.5 h-0.5 rounded-full bg-slate-300"></span>
               <span className="flex items-center gap-1">
                 {getVisibilityIcon(post.visibility)}
                 <span className="capitalize">{post.visibility || "Public"}</span>
@@ -100,15 +100,15 @@ const FeedCard = ({ post }) => {
           </div>
         </div>
 
-        <button className="p-2 text-base-content/40 hover:text-primary hover:bg-primary/5 rounded-full transition-all">
+        <button className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-slate-50 rounded-full transition-colors">
           <MoreHorizontal className="w-5 h-5" />
         </button>
       </div>
 
       {/* Content */}
       {post.content && (
-        <div className="px-5 pb-4">
-          <p className="text-base-content/80 leading-relaxed whitespace-pre-wrap text-[15px]">
+        <div className="px-4 sm:px-5 pb-3">
+          <p className="text-slate-700 leading-relaxed whitespace-pre-wrap text-[15px]">
             {post.content}
           </p>
         </div>
@@ -116,8 +116,8 @@ const FeedCard = ({ post }) => {
 
       {/* Media Gallery */}
       {post.media && post.media.length > 0 && (
-        <div className="relative bg-black/5">
-          <div className="aspect-video w-full flex items-center justify-center overflow-hidden">
+        <div className="relative bg-black">
+          <div className="aspect-[4/3] w-full flex items-center justify-center overflow-hidden bg-slate-900">
             {post.media[currentMediaIndex].type === 'video' ? (
               <video
                 src={post.media[currentMediaIndex].url}
@@ -140,23 +140,23 @@ const FeedCard = ({ post }) => {
               <button
                 onClick={prevMedia}
                 disabled={currentMediaIndex === 0}
-                className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 disabled:opacity-0 transition-all backdrop-blur-sm"
+                className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/40 text-white hover:bg-black/60 disabled:opacity-0 transition-all backdrop-blur-sm"
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
               <button
                 onClick={nextMedia}
                 disabled={currentMediaIndex === post.media.length - 1}
-                className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 disabled:opacity-0 transition-all backdrop-blur-sm"
+                className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/40 text-white hover:bg-black/60 disabled:opacity-0 transition-all backdrop-blur-sm"
               >
                 <ChevronRight className="w-5 h-5" />
               </button>
 
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5">
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 p-1 rounded-full bg-black/20 backdrop-blur-sm">
                 {post.media.map((_, index) => (
                   <div
                     key={index}
-                    className={`w-1.5 h-1.5 rounded-full transition-all ${index === currentMediaIndex ? 'bg-white w-3' : 'bg-white/50'
+                    className={`h-1.5 rounded-full transition-all ${index === currentMediaIndex ? 'bg-white w-4' : 'bg-white/50 w-1.5'
                       }`}
                   />
                 ))}
@@ -167,48 +167,48 @@ const FeedCard = ({ post }) => {
       )}
 
       {/* Actions */}
-      <div className="p-4 border-t border-base-content/5">
+      <div className="px-4 sm:px-5 py-3 border-t border-slate-100">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-6">
             <button
               onClick={handleLike}
-              className={`flex items-center gap-2 text-sm font-medium transition-all active:scale-95 ${isLiked ? 'text-error' : 'text-base-content/60 hover:text-error'
+              className={`group flex items-center gap-2 text-sm font-medium transition-all active:scale-95 ${isLiked ? 'text-rose-500' : 'text-slate-500 hover:text-rose-500'
                 }`}
             >
-              <Heart className={`w-6 h-6 ${isLiked ? 'fill-current' : ''}`} strokeWidth={2} />
+              <Heart className={`w-[22px] h-[22px] transition-transform group-hover:scale-110 ${isLiked ? 'fill-current' : ''}`} strokeWidth={isLiked ? 0 : 2} />
               <span>{likesCount}</span>
             </button>
 
             <button
               onClick={() => setShowComments(!showComments)}
-              className="flex items-center gap-2 text-sm font-medium text-base-content/60 hover:text-primary transition-all active:scale-95"
+              className="group flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-indigo-600 transition-all active:scale-95"
             >
-              <MessageCircle className="w-6 h-6" strokeWidth={2} />
+              <MessageCircle className="w-[22px] h-[22px] transition-transform group-hover:scale-110" strokeWidth={2} />
               <span>{post.commentsCount || 0}</span>
             </button>
 
-            <button className="flex items-center gap-2 text-sm font-medium text-base-content/60 hover:text-secondary transition-all active:scale-95">
-              <Share2 className="w-6 h-6" strokeWidth={2} />
+            <button className="group flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-indigo-600 transition-all active:scale-95">
+              <Share2 className="w-[22px] h-[22px] transition-transform group-hover:scale-110" strokeWidth={2} />
             </button>
           </div>
         </div>
 
         {/* Comments Section */}
         {showComments && (
-          <div className="pt-4 mt-2 animate-in slide-in-from-top-2 duration-200">
+          <div className="pt-4 mt-3 border-t border-slate-50 animate-in slide-in-from-top-2 duration-200">
             <div className="flex gap-3">
               <img
                 src={userId?.photourl || "https://placeimg.com/80/80/people"}
                 alt="Avatar"
-                className="w-9 h-9 rounded-full object-cover border border-base-content/10"
+                className="w-8 h-8 rounded-full object-cover border border-slate-200"
               />
               <div className="flex-1 relative group">
                 <input
                   type="text"
                   placeholder="Add a comment..."
-                  className="w-full pl-4 pr-12 py-2.5 rounded-2xl bg-base-content/5 border-transparent focus:bg-white focus:border-primary/20 focus:ring-4 focus:ring-primary/5 outline-none transition-all text-sm placeholder:text-base-content/40"
+                  className="w-full pl-4 pr-12 py-2 rounded-xl bg-slate-50 border border-transparent focus:bg-white focus:border-slate-300 focus:ring-4 focus:ring-slate-100 outline-none transition-all text-sm text-slate-700 placeholder:text-slate-400"
                 />
-                <button className="absolute right-2 top-1/2 -translate-y-1/2 text-primary opacity-0 group-focus-within:opacity-100 hover:text-primary/80 p-1.5 rounded-full hover:bg-primary/10 transition-all">
+                <button className="absolute right-2 top-1/2 -translate-y-1/2 text-indigo-600 opacity-0 group-focus-within:opacity-100 hover:text-indigo-700 p-1.5 rounded-full hover:bg-indigo-50 transition-all">
                   <Send className="w-4 h-4" />
                 </button>
               </div>

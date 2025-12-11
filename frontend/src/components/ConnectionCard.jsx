@@ -6,43 +6,28 @@ const ConnectionCard = ({ user }) => {
   if (!user) return null;
 
   return (
-    <div className="glass-card p-6 flex flex-col items-center text-center group hover:border-primary/30 transition-all duration-300">
-      <div className="relative mb-4 cursor-pointer" onClick={() => navigate(`/profile/${user._id}`)}>
-        <div className="w-24 h-24 rounded-full p-1 glass group-hover:bg-primary/10 transition-colors">
+    <div className="bg-white/50 backdrop-blur-sm border-b border-slate-200/60 p-4 flex items-center gap-4 hover:bg-slate-50/80 transition-all duration-300 cursor-pointer" onClick={() => navigate(`/chat/${user._id}`)}>
+      <div className="relative">
+        <div className="w-12 h-12 rounded-full p-0.5 bg-gradient-to-br from-indigo-500 to-violet-500">
           <img
-            src={user.photourl || "https://placeimg.com/100/100/people"}
-            alt={`${user.firstName} ${user.lastName}`}
-            className="w-full h-full rounded-full object-cover"
+            src={user.photourl || "https://geographyandyou.com/images/user-profile.png"} // Fallback image
+            alt="user"
+            className="w-full h-full rounded-full object-cover border-2 border-white"
           />
         </div>
-        <div className="absolute bottom-1 right-1 w-4 h-4 bg-success rounded-full border-2 border-base-100"></div>
+        {/* Online indicator placeholder if needed */}
+        {/* <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div> */}
       </div>
 
-      <h3
-        className="font-bold text-lg text-base-content mb-1 cursor-pointer hover:text-primary transition-colors"
-        onClick={() => navigate(`/profile/${user._id}`)}
-      >
-        {user.firstName} {user.lastName}
-      </h3>
-
-      <p className="text-base-content/60 text-sm mb-6 line-clamp-1">
-        {user.domain || "Developer"}
-      </p>
-
-      <div className="flex gap-2 w-full">
-        <button
-          onClick={() => navigate(`/profile/${user._id}`)}
-          className="flex-1 btn-ghost text-sm py-2 px-3 border border-base-content/10"
-        >
-          Profile
-        </button>
-        <Link
-          to={"/chat/" + user._id}
-          className="flex-1 btn-primary text-sm py-2 px-3 flex items-center justify-center gap-2"
-        >
-          <MessageCircle className="w-4 h-4" />
-          Chat
-        </Link>
+      <div className="flex-1 min-w-0">
+        <div className="flex justify-between items-baseline">
+          <h3 className="text-base font-semibold text-slate-800 truncate">
+            {user.firstName} {user.lastName}
+          </h3>
+        </div>
+        <div className="flex items-center gap-1 text-sm text-slate-500 truncate">
+          <p className="truncate w-full">{user.domain || "Hey there! I am using PairVerse."}</p>
+        </div>
       </div>
     </div>
   );

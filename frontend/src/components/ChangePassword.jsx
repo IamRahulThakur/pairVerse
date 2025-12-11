@@ -49,68 +49,68 @@ const ChangePassword = () => {
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-4">
       <Toaster />
-      <div className="glass-card p-8 max-w-md w-full">
+      <div className="bg-white rounded-2xl shadow-xl border border-slate-200 p-8 max-w-md w-full">
         <button
           onClick={() => navigate("/profile")}
-          className="flex items-center text-sm text-base-content/60 hover:text-primary transition-colors mb-6 group"
+          className="flex items-center text-sm text-slate-500 hover:text-indigo-600 transition-colors mb-6 group font-medium"
         >
           <ArrowLeft className="w-4 h-4 mr-1 group-hover:-translate-x-1 transition-transform" />
           Back to Profile
         </button>
 
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Lock className="w-8 h-8 text-primary" />
+          <div className="w-16 h-16 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-indigo-100">
+            <Lock className="w-8 h-8 text-indigo-600" />
           </div>
-          <h2 className="text-2xl font-bold text-base-content">Change Password</h2>
-          <p className="text-base-content/60 mt-2">Ensure your account stays secure</p>
+          <h2 className="text-2xl font-bold text-slate-900">Change Password</h2>
+          <p className="text-slate-500 mt-2">Ensure your account stays secure</p>
         </div>
 
-        <form className="space-y-4" onSubmit={handleChangePassword}>
-          <div className="space-y-1">
-            <label className="text-sm font-medium text-base-content/80 ml-1">Current Password</label>
+        <form className="space-y-5" onSubmit={handleChangePassword}>
+          <div className="space-y-1.5">
+            <label className="text-sm font-semibold text-slate-700 ml-1">Current Password</label>
             <div className="relative">
-              <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-base-content/40" />
+              <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter current password"
-                className="input-field pl-10"
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all"
               />
             </div>
           </div>
 
-          <div className="space-y-1">
-            <label className="text-sm font-medium text-base-content/80 ml-1">New Password</label>
+          <div className="space-y-1.5">
+            <label className="text-sm font-semibold text-slate-700 ml-1">New Password</label>
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-base-content/40" />
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
               <input
                 type="password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 placeholder="Enter new password"
-                className="input-field pl-10"
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all"
               />
             </div>
           </div>
 
-          <div className="space-y-1">
-            <label className="text-sm font-medium text-base-content/80 ml-1">Confirm New Password</label>
+          <div className="space-y-1.5">
+            <label className="text-sm font-semibold text-slate-700 ml-1">Confirm New Password</label>
             <div className="relative">
-              <CheckCircle className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-base-content/40" />
+              <CheckCircle className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
               <input
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Confirm new password"
-                className="input-field pl-10"
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all"
               />
             </div>
           </div>
 
           {errorMessage && (
-            <div className="flex items-center gap-2 text-error text-sm bg-error/10 p-3 rounded-lg">
+            <div className="flex items-center gap-2 text-rose-600 text-sm bg-rose-50 border border-rose-100 p-3 rounded-lg">
               <AlertCircle className="w-4 h-4 flex-shrink-0" />
               <p>{errorMessage}</p>
             </div>
@@ -119,7 +119,7 @@ const ChangePassword = () => {
           <button
             type="submit"
             disabled={isLoading}
-            className="btn-primary w-full mt-4 flex items-center justify-center gap-2"
+            className="w-full py-3 rounded-xl bg-indigo-600 text-white font-bold hover:bg-indigo-700 active:scale-[0.98] transition-all shadow-md shadow-indigo-200 flex items-center justify-center gap-2 mt-4"
           >
             {isLoading ? (
               <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />

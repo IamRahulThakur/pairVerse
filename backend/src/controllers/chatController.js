@@ -1,3 +1,5 @@
+import { chatService } from "../services/chatService.js";
+
 export const chatHandler =   async (req, res, next) => {
   try {
     const { targetUserId } = req.params;

@@ -37,6 +37,7 @@ function App() {
               <Route path="/connection" element={<Connection />} />
               <Route path="/user/createpost" element={<CreatePost />} />
               <Route path="/changepassword" element={<ChangePassword />} />
+              <Route path="/chat" element={<Chat />} />
               <Route path="/chat/:targetUserId" element={<Chat />} />
               <Route path="/matchingpeers" element={<MatchingPeers />} />
               <Route path="/search" element={<SearchUsers />} />
