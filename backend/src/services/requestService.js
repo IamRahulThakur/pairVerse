@@ -1,11 +1,11 @@
 import { ConnectionRequestModel } from "../model/connectionRequest.js";
-import { notificationModel } from "../model/notifications.js";
 import { UserModel } from "../model/user.js";
 import {
   BadRequestError,
   ConflictError,
   NotFoundError,
 } from "../utils/appError.js";
+import { addJobToQueue } from "./queueService.js";
 
 export const sendRequestService = async (
   fromUserId,
@@ -41,17 +41,15 @@ export const sendRequestService = async (
   });
   const data = await connectionRequest.save();
 
-  const notificationCreated = new notificationModel({
+  addJobToQueue("createNotification", {
     fromUserId: fromUserId,
     toUserId: toUserId,
     type: "connection_request",
     title: `New connection request from ${user.firstName}`,
     status: "unread",
-  });
+  })
 
-  const notification = await notificationCreated.save();
-
-  return { data, notification };
+  return data;
 };
 
 export const respondRequestService = async (status, requestId, userId) => {
@@ -79,13 +77,15 @@ export const respondRequestService = async (status, requestId, userId) => {
   const user = await UserModel.findById(userId);
 
   if (status === "accepted") {
-    const notification = new notificationModel({
-      fromUserId: connectionRequest.toUserId,
-      toUserId: connectionRequest.fromUserId,
-      type: "connection_request",
-      title: `Your connection request has been ${status} by ${user.firstName}`,
-      status: "unread",
+
+    addJobToQueue("createNotification", {
+        fromUserId: connectionRequest.toUserId,
+        toUserId: connectionRequest.fromUserId,
+        type: "connection_request",
+        title: `Your connection request has been ${status} by ${user.firstName}`,
+        status: "unread",
     });
+
     const userAId = connectionRequest.fromUserId.toString(); 
     const userBId = connectionRequest.toUserId.toString(); 
     
@@ -94,7 +94,6 @@ export const respondRequestService = async (status, requestId, userId) => {
 
     await redis.del(keyA);
     await redis.del(keyB);
-    await notification.save();
   }
   return data;
 };

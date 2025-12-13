@@ -8,7 +8,7 @@ export const sendRequestHandler = async (req, res, next) => {
         const status = req.params.status;
         const user = req.user;
 
-        const {data , notification} = await sendRequestService(
+        const data = await sendRequestService(
             fromUserId,
             toUserId,
             status,
@@ -18,7 +18,6 @@ export const sendRequestHandler = async (req, res, next) => {
         res.json({
             message: "Connection Made Successfully",
             data,
-            notification
         })
     }
     catch (error) {

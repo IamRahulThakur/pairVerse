@@ -12,6 +12,8 @@ import initialiseSocket from "./utils/socket.js";
 import chatRouter from "./routes/chat.js";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
+import mongoSanitize from "express-mongo-sanitize";
+import hpp from "hpp";
 
 export const app = express();
 
@@ -21,11 +23,13 @@ app.use(cors(
     credentials: true,
   }
 ));
+app.use(helmet());
+
 app.use(express.json()); 
 app.use(cookieParser());
 
-
-app.use(helmet());
+app.use(mongoSanitize());
+app.use(hpp());
 
 
 const limiter = rateLimit({
@@ -37,7 +41,7 @@ const limiter = rateLimit({
 
 app.set('trust proxy', 1);
 
-// app.use(limiter);
+app.use(limiter);
 
 app.use('/api', authRouter);
 app.use('/api', profileRouter);

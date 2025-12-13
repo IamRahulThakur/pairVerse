@@ -1,12 +1,16 @@
 import multer from "multer";
-import { CloudinaryStorage } from "multer-storage-cloudinary";
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
 import cloudinary from "../config/cloudinary.js";
 
+
+const CloudinaryStorage = require("multer-storage-cloudinary").CloudinaryStorage || require("multer-storage-cloudinary");
+
 const postStorage = new CloudinaryStorage({
-  cloudinary,
+  cloudinary: cloudinary,
   params: {
     folder: "user_posts",
-    resource_type: "auto", // allows images + videos
+    resource_type: "auto",
   },
 });
 
