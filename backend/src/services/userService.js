@@ -20,6 +20,9 @@ const USER_SAFE_DATA = [
   "domain"
 ];
 
+const MAX_MEDIA_PER_POST = 5;
+
+
 export const getRequestService = async (userId) => {
   const data = await ConnectionRequestModel.find({
     toUserId: userId,
@@ -110,7 +113,14 @@ export const markAllNotificationsAsReadService = async (userId) => {
   );
 };
 
-export const createPostService = async (user, content, files, mediaAttempted) => {
+
+export const createPostService = async (
+  user,
+  content,
+  files,
+  mediaAttempted
+) => {
+
   if (mediaAttempted && (!files || files.length === 0)) {
     throw new BadRequestError(
       "Media upload failed. File may be too large or invalid."
@@ -121,14 +131,20 @@ export const createPostService = async (user, content, files, mediaAttempted) =>
     throw new BadRequestError("Post must contain text or media");
   }
 
+  if (files && files.length > MAX_MEDIA_PER_POST) {
+    throw new BadRequestError(
+      `Maximum ${MAX_MEDIA_PER_POST} media files are allowed per post`
+    );
+  }
+
   const media = [];
 
   if (files && files.length > 0) {
     for (const file of files) {
       media.push({
         url: file.path,
+        publicId: file.filename,
         type: file.mimetype.startsWith("video") ? "video" : "image",
-        public_id: file.filename,
       });
     }
   }
@@ -139,8 +155,22 @@ export const createPostService = async (user, content, files, mediaAttempted) =>
     media,
   });
 
-  await post.save();
-  return post;
+  try {
+    await post.save();
+    return post;
+  } catch (err) {
+    if (media.length > 0) {
+      await Promise.all(
+        media.map((item) =>
+          cloudinary.uploader.destroy(item.publicId, {
+            resource_type: item.type === "video" ? "video" : "image",
+          })
+        )
+      );
+    }
+
+    throw err;
+  }
 };
 
 export const deletePostService = async (postId, userId) => {
