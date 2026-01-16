@@ -128,9 +128,7 @@ const EditProfile = () => {
       techStack.forEach((tech) => formData.append("techStack", tech));
       if (photoFile) formData.append("photo", photoFile);
 
-      await api.patch("/profile/edit", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      await api.patch("/profile/edit", formData);
 
       toast.success("Profile updated successfully!");
       navigate("/profile");

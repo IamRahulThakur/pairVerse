@@ -110,48 +110,37 @@ export const markAllNotificationsAsReadService = async (userId) => {
   );
 };
 
-export const createPostService = async (user, title, content, reqFiles) => {
-  if (!title && !content && (!reqFiles || reqFiles.length === 0)) {
-    throw new Error("Post must have text, media, or both");
+export const createPostService = async (user, content, files, mediaAttempted) => {
+  if (mediaAttempted && (!files || files.length === 0)) {
+    throw new BadRequestError(
+      "Media upload failed. File may be too large or invalid."
+    );
   }
 
-  const media =
-    reqFiles?.map((file) => ({
-      url: file.path,
-      type: file.mimetype.startsWith("video") ? "video" : "image",
-      public_id: file.filename,
-    })) || [];
+  if (!content && (!files || files.length === 0)) {
+    throw new BadRequestError("Post must contain text or media");
+  }
 
-  const newPost = new PostModel({
-    title,
-    content,
+  const media = [];
+
+  if (files && files.length > 0) {
+    for (const file of files) {
+      media.push({
+        url: file.path,
+        type: file.mimetype.startsWith("video") ? "video" : "image",
+        public_id: file.filename,
+      });
+    }
+  }
+
+  const post = new PostModel({
     userId: user._id,
+    content,
     media,
   });
 
-  const userConnection = await ConnectionRequestModel.find({
-    $or: [
-      { toUserId: user._id, status: "accepted" },
-      { fromUserId: user._id, status: "accepted" },
-    ],
-  });
-
-  const connectionIds = userConnection.map((conn) =>
-    conn.toUserId.toString() === user._id.toString()
-      ? conn.fromUserId
-      : conn.toUserId
-  );
-
-  const idsToInvalidate = [...connectionIds, userId.toString()];
-
-  const redisKeys = idsToInvalidate.map(id => `feed:${id}`);
-
-  if (redisKeys.length > 0) {
-      await redis.del(...redisKeys); 
-  }
-
-  await newPost.save();
-  return newPost;
+  await post.save();
+  return post;
 };
 
 export const deletePostService = async (postId, userId) => {
@@ -164,42 +153,52 @@ export const deletePostService = async (postId, userId) => {
     throw new NotFoundError("Post not found");
   }
 
+
   if (post.userId.toString() !== userId.toString()) {
     throw new UnauthorisedError("You are not authorized to delete this post");
   }
-  // Delete all media from Cloudinary
+
   if (post.media && post.media.length > 0) {
-    console.log("Deleting media files:", post.media);
-    for (const item of post.media) {
+    const deletePromises = post.media.map((item) => {
       if (item.public_id) {
-        try {
-          await cloudinary.uploader.destroy(item.public_id);
-        } catch (cloudinaryError) {}
+        return cloudinary.uploader.destroy(item.public_id);
       }
+    });
+
+    try {
+      await Promise.all(deletePromises);
+    } catch (err) {
+      console.error("Cloudinary Cleanup Warning:", err.message);
     }
   }
 
   await PostModel.findByIdAndDelete(postId);
-    const userConnection = await ConnectionRequestModel.find({
+
+  await UserModel.findByIdAndUpdate(userId, {
+    $pull: { posts: postId }
+  });
+
+  const userConnection = await ConnectionRequestModel.find({
     $or: [
-      { toUserId: user._id, status: "accepted" },
-      { fromUserId: user._id, status: "accepted" },
+      { toUserId: userId, status: "accepted" },
+      { fromUserId: userId, status: "accepted" },
     ],
   });
 
   const connectionIds = userConnection.map((conn) =>
-    conn.toUserId.toString() === user._id.toString()
-      ? conn.fromUserId
-      : conn.toUserId
+    conn.toUserId.toString() === userId.toString()
+      ? conn.fromUserId.toString()
+      : conn.toUserId.toString()
   );
 
   const idsToInvalidate = [...connectionIds, userId.toString()];
-
-  const redisKeys = idsToInvalidate.map(id => `feed:${id}`);
+  const redisKeys = idsToInvalidate.map((id) => `feed:${id}`);
 
   if (redisKeys.length > 0) {
-      await redis.del(...redisKeys); 
+    await redis.del(...redisKeys);
   }
+
+  return { message: "Post deleted successfully" };
 };
 
 export const generateFeedService = async (user) => {
@@ -207,7 +206,7 @@ export const generateFeedService = async (user) => {
     throw new UnauthorisedError("Unauthorized");
   }
   const key = `feed:${user._id}`;
-  
+
   const cached = await redis.get(key);
   if (cached) return JSON.parse(cached);
 

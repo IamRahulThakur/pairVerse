@@ -23,7 +23,7 @@ export const getProfileService = async (userId) => {
   });
 };
 
-export const editProfileService = async (userId, data , reqFile) => {
+export const editProfileService = async (userId, data, reqFile) => {
   if (data.techStack) {
     data.techStack = data.techStack.map((item) => item.trim());
   }
@@ -32,20 +32,26 @@ export const editProfileService = async (userId, data , reqFile) => {
     throw new ConflictError("Email or Password cannot be updated here");
   }
 
-  // Check for unique username
   if (data.username) {
     const existing = await UserModel.findOne({ username: data.username });
     if (existing && existing._id.toString() !== userId.toString()) {
       throw new ConflictError("Username already taken");
     }
   }
-  if (reqFile && reqFile.path) {
-    data.photourl = reqFile.path;
+
+  const updates = { ...data };
+
+  if (reqFile) {
+    const cloudinaryUrl = reqFile.path || reqFile.secure_url || reqFile.url;
+
+    if (cloudinaryUrl) {
+      updates.photourl = cloudinaryUrl;
+    }
   }
 
   await redis.del(`matchingPeers:${userId}`);
 
-  return await UserModel.findByIdAndUpdate(userId, data, {
+  return await UserModel.findByIdAndUpdate(userId, updates, {
     new: true,
     runValidators: true,
   });

@@ -79,17 +79,22 @@ export const markAllNotificationsAsReadHandler = async (req, res, next) => {
 export const createPostHandler = async (req, res, next) => {
   try {
     const user = req.user;
-    const { title, content } = req.body;
-    const reqFiles = req.files;
+    const { content } = req.body;
+    const files = req.files;
 
-    const newPost = await createPostService(user, title, content, reqFiles);
+    const newPost = await createPostService(
+      user,
+      content,
+      files,
+      req.mediaUploadAttempted 
+    );
 
     res.status(201).json({
       message: "Post created successfully",
-      post: newPost,
+      data: newPost,
     });
   } catch (error) {
-    next(error)
+    next(error);
   }
 };
 

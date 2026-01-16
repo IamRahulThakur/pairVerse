@@ -1,7 +1,7 @@
 import express from "express";
 import { userAuth } from "../middlewares/auth.js";
 
-import { uploadPost } from "../middlewares/uploadPost.js";
+import { uploadPost } from "../middlewares/multer.js";
 import {
   createPostHandler,
   deletePostHandler,
@@ -46,7 +46,7 @@ userRouter.patch(
 userRouter.post(
   "/user/posts/create",
   userAuth,
-  uploadPost.array("media", 5), // allows up to 5 files
+  uploadPost.array("file", 5),
   createPostHandler
 );
 

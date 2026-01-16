@@ -20,10 +20,18 @@ import SearchUsers from "./components/SearchUsers";
 import UserProfile from "./components/UserProfile";
 import MatchingPeers from "./components/MatchingPeers";
 import Notifications from "./components/Notifications";
+import { Toaster } from "react-hot-toast";
 
 function App() {
   return (
     <>
+      <Toaster
+        position="top-center"
+        reverseOrder={false}
+        toastOptions={{
+          duration: 3000,
+        }}
+      />
       <Provider store={appStore}>
         <BrowserRouter>
           <Routes>
