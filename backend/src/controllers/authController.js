@@ -1,34 +1,45 @@
 import { loginService, signupService } from "../services/authService.js";
 
+const cookieOptions = {
+  httpOnly: true,
+  secure: true,
+  sameSite: "none",
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+};
+
 export const signupHandler = async (req, res, next) => {
-    try {
-        const { emailId, password } = req.body;
+  try {
+    const { emailId, password } = req.body;
 
-        const {user , token} = await signupService(emailId , password);
-        
-        res.cookie("token" , token);
+    const { user, token } = await signupService(emailId, password);
 
-        res.send(user);
-    } 
-    catch (error) {
-        next(error);
-    }
+    res.cookie("token", token, cookieOptions);
+
+    res.send(user);
+  } catch (error) {
+    next(error);
+  }
 };
 
 export const loginHandler = async (req, res, next) => {
-    
-    try {
-        const { emailId, password } = req.body;
+  try {
+    const { emailId, password } = req.body;
 
-        const {user , token } = await loginService(emailId, password);
-        res.cookie("token" , token);
-        res.send(user);
-    } catch (error) {
-        next(error);
-    }
+    const { user, token } = await loginService(emailId, password);
+
+    res.cookie("token", token, cookieOptions);
+
+    res.send(user);
+  } catch (error) {
+    next(error);
+  }
 };
 
-export const logoutHandler = async(req, res) => {
-    res.clearCookie('token');
-    res.send("Logged out Successfully......");
+export const logoutHandler = async (req, res) => {
+  res.clearCookie("token", {
+    secure: true,
+    sameSite: "none",
+  });
+
+  res.send("Logged out Successfully");
 };
