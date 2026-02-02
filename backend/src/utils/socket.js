@@ -1,7 +1,7 @@
 import { Server } from "socket.io";
 import crypto from "crypto";
-import { chatModel } from "../model/chat.js";
-import { timeStamp } from "console";
+import cookie from "cookie";
+import jwt from "jsonwebtoken";
 import { sendMessageService } from "../services/chatService.js";
 
 const getHashedRoomId = (userId, targetUserId) => {
@@ -14,44 +14,87 @@ const getHashedRoomId = (userId, targetUserId) => {
 const initialiseSocket = (server) => {
   const io = new Server(server, {
     cors: {
-      origin: "*",
+      origin:
+        process.env.NODE_ENV === "production"
+          ? "https://pairverse.onrender.com"
+          : "http://localhost:5173",
       credentials: true,
     },
     path: "/socket.io",
   });
 
+  // Socket Authentication Middleware
+  io.use((socket, next) => {
+    try {
+      const cookieHeader = socket.handshake.headers.cookie;
+
+      if (!cookieHeader) {
+        return next(new Error("No cookies found"));
+      }
+
+      const cookies = cookie.parse(cookieHeader);
+      const token = cookies.token;
+
+      if (!token) {
+        return next(new Error("No auth token"));
+      }
+
+      const decoded = jwt.verify(
+        token,
+        process.env.JWT_SECRET
+      );
+
+      socket.userId = decoded.userId;
+
+      next();
+    } catch (err) {
+      next(new Error("Unauthorized socket"));
+    }
+  });
+
   io.on("connection", (socket) => {
-    // Handle Events
-    socket.on("joinChat", ({ userId, targetUserId }) => {
-      const roomId = getHashedRoomId(userId, targetUserId);
-      console.log("Joining Room  " + roomId);
+    console.log("Socket connected:", socket.id);
+
+    socket.on("joinChat", ({ targetUserId }) => {
+      const roomId = getHashedRoomId(
+        socket.userId,
+        targetUserId
+      );
+
       socket.join(roomId);
+
+      console.log("Joined room:", roomId);
     });
 
-    // Here server is listening to sendMessage and whenever msg comes inside sendMessage event it is sending that message to that room ans then it emit event messageReceived with message so frontend code listen to that event
-    socket.on(
-      "sendMessage",
-      async ({ firstName, userId, targetUserId, text }) => {
-        const roomId = getHashedRoomId(userId, targetUserId);
+    socket.on("sendMessage", async ({ targetUserId, text, firstName }) => {
+      const roomId = getHashedRoomId(
+        socket.userId,
+        targetUserId
+      );
 
-        try {
-          let newMessage = await sendMessageService(userId, targetUserId, text);
+      try {
+        const newMessage = await sendMessageService(
+          socket.userId,
+          targetUserId,
+          text
+        );
 
-          io.to(roomId).emit("messageReceived", {
-            firstName,
-            text: newMessage.text,
-            senderId: newMessage.senderId,
-            timestamp: newMessage.createdAt,
-          });
-        } catch (error) {
-          socket.emit("messageFailed", {
-            error: error.message,
-          });
-        }
+        io.to(roomId).emit("messageReceived", {
+          firstName,
+          text: newMessage.text,
+          senderId: newMessage.senderId,
+          timestamp: newMessage.createdAt,
+        });
+      } catch (error) {
+        socket.emit("messageFailed", {
+          error: error.message,
+        });
       }
-    );
+    });
 
-    socket.on("disconnect", () => {});
+    socket.on("disconnect", () => {
+      console.log("Socket disconnected:", socket.id);
+    });
   });
 };
 

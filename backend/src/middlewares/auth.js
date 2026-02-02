@@ -4,6 +4,8 @@ import { UserModel } from "../model/user.js";
 
 
 export const userAuth =async (req, res, next) => {
+  console.log("Cookies:", req.cookies);
+console.log("Cookie header:", req.headers.cookie);
 
   try {
     // Read Token From Cookies
@@ -16,7 +18,7 @@ export const userAuth =async (req, res, next) => {
     
     // Decoded return a object contain {paylod , iat(issued at time)}
     // In our case payload was {userId: user._id} 
-    const decoded = jwt.verify(token , "Rahul@2#$%^&*3");
+    const decoded = jwt.verify(token , process.env.JWT_SECRET);
     // So here we are taking userId from decoded Object
     const userId = decoded.userId;
 
