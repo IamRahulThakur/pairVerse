@@ -20,7 +20,8 @@ import chatRouter from "./routes/chat.js";
 import { BadRequestError } from "./utils/appError.js";
 
 export const app = express();
-
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 const allowedOrigins = [
   "http://localhost:5173",           
@@ -71,9 +72,6 @@ app.use((err, req, res, next) => {
 
   next(err);
 });
-
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
 app.use("/api", authRouter);
 app.use("/api", profileRouter);
