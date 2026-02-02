@@ -27,20 +27,16 @@ const allowedOrigins = [
   "https://pairverse.onrender.com"   
 ];
 
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      if (!origin) return callback(null, true);
-      
-      if (allowedOrigins.indexOf(origin) !== -1) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
-      }
-    },
-    credentials: true,
-  })
-);
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
+}));
 
 app.use(helmet());
 app.use(cookieParser());
@@ -76,6 +72,8 @@ app.use((err, req, res, next) => {
   next(err);
 });
 
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 app.use("/api", authRouter);
 app.use("/api", profileRouter);
@@ -83,8 +81,6 @@ app.use("/api", requestRouter);
 app.use("/api", userRouter);
 app.use("/api", chatRouter);
 
-
-app.use(express.json());
 
 
 app.use((err, req, res, next) => {
