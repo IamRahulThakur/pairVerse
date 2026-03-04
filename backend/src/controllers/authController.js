@@ -4,8 +4,8 @@ const isProd = process.env.NODE_ENV === "production";
 
 const cookieOptions = {
   httpOnly: true,
-  secure: isProd,                    
-  sameSite: isProd ? "none" : "lax", 
+  secure: true,                    
+  sameSite: "none", 
   maxAge: 7 * 24 * 60 * 60 * 1000,
 };
 
@@ -15,7 +15,6 @@ export const signupHandler = async (req, res, next) => {
     const { emailId, password } = req.body;
 
     const { user, token } = await signupService(emailId, password);
-
     res.cookie("token", token, cookieOptions);
 
     res.send(user);
