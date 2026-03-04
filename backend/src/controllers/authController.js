@@ -9,9 +9,6 @@ const cookieOptions = {
   maxAge: 7 * 24 * 60 * 60 * 1000,
 };
 
-if(isProd) {
-  cookieOptions.domain = ".onrender.com";
-}
 
 export const signupHandler = async (req, res, next) => {
   try {
@@ -43,8 +40,9 @@ export const loginHandler = async (req, res, next) => {
 
 export const logoutHandler = async (req, res) => {
   res.clearCookie("token", {
-    secure: true,
-    sameSite: "none",
+    httpOnly: true,
+    secure: isProd,
+    sameSite: isProd ? "none" : "lax",
   });
 
   res.send("Logged out Successfully");
