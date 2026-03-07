@@ -1,7 +1,7 @@
 import Body from "./components/Body";
 import Login from "./components/Login";
 import NavBar from "./components/NavBar";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import Profile from "./components/Profile";
 import { Provider } from "react-redux";
 import appStore from "./utils/appStore";
@@ -23,6 +23,7 @@ import Notifications from "./components/Notifications";
 import { Toaster } from "react-hot-toast";
 
 function App() {
+  const token = localStorage.getItem("token");
   return (
     <>
       <Toaster
@@ -36,6 +37,12 @@ function App() {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Body />}>
+              <Route
+                index
+                element={
+                  token ? <Navigate to="/feed" replace /> : <Navigate to="/login" replace />
+                }
+              />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
               <Route path="/feed" element={<Feed />} />
