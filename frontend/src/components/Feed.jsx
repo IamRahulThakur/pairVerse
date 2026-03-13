@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import {
@@ -31,6 +31,12 @@ const Feed = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");
   const [sendingRequestId, setSendingRequestId] = useState(null);
+  const userRef = useRef(user);
+  const hasFetchedInitialDashboard = useRef(false);
+
+  useEffect(() => {
+    userRef.current = user;
+  }, [user]);
 
   const collaboratorReadiness = useMemo(() => {
     if (!user) return 0;
@@ -51,6 +57,8 @@ const Feed = () => {
   }, [user]);
 
   const fetchDashboard = useCallback(async (isRefresh = false) => {
+    const currentUser = userRef.current;
+
     try {
       if (isRefresh) {
         setRefreshing(true);
@@ -61,7 +69,7 @@ const Feed = () => {
       setError("");
       const [profileRes, feedRes, matchRes, requestRes, notificationRes, connectionRes] =
         await Promise.all([
-          user ? Promise.resolve({ data: user }) : api.get("/profile"),
+          currentUser && !isRefresh ? Promise.resolve(null) : api.get("/profile"),
           api.get("/user/posts/feed"),
           api.get("/user/matchingpeers"),
           api.get("/user/requests/received"),
@@ -69,7 +77,9 @@ const Feed = () => {
           api.get("/user/connections"),
         ]);
 
-      dispatch(addUser(profileRes.data));
+      if (profileRes?.data) {
+        dispatch(addUser(profileRes.data));
+      }
       dispatch(addFeed(feedRes.data.posts || feedRes.data || []));
       setMatches(matchRes.data || []);
       setRequests(requestRes.data || []);
@@ -82,9 +92,14 @@ const Feed = () => {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [dispatch, user]);
+  }, [dispatch]);
 
   useEffect(() => {
+    if (hasFetchedInitialDashboard.current) {
+      return;
+    }
+
+    hasFetchedInitialDashboard.current = true;
     fetchDashboard();
   }, [fetchDashboard]);
 

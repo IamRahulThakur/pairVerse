@@ -12,7 +12,9 @@ const Body = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const userData = useSelector((store) => store.user);
-  const [isBootstrapping, setIsBootstrapping] = useState(false);
+  const [isBootstrapping, setIsBootstrapping] = useState(
+    !PUBLIC_ROUTES.has(location.pathname) && !userData
+  );
 
   const isPublicRoute = PUBLIC_ROUTES.has(location.pathname);
 
