@@ -1,122 +1,158 @@
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
+import { ArrowRight, LockKeyhole, Mail, Sparkles, Users2 } from "lucide-react";
+import toast from "react-hot-toast";
 import { addUser } from "../utils/userSlice";
 import { api } from "../utils/api";
-import toast from "react-hot-toast";
-import { Eye, EyeOff, Mail, Lock, ArrowRight } from "lucide-react";
 
 const Login = () => {
   const [emailId, setEmailId] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
+  const handleLogin = async (event) => {
+    event.preventDefault();
+    setErrorMessage("");
+    setIsLoading(true);
+
     try {
       const response = await api.post("/login", { emailId, password });
       dispatch(addUser(response.data));
-      toast.success("Welcome back!");
-      return navigate("/feed");
+      toast.success("Welcome back to PairVerse");
+      navigate(location.state?.from || "/feed", { replace: true });
     } catch (error) {
       const status = error.response?.status;
-      let userFriendlyMessage = "Login failed. Please try again.";
 
       if (status === 401) {
-        userFriendlyMessage = "Invalid email or password. Check your details.";
-      } else if (status === 400) {
-        userFriendlyMessage = error.response.data.error || "Missing required fields.";
-      } else if (status >= 500) {
-        userFriendlyMessage = "Server unavailable. Please try again later.";
+        setErrorMessage("Invalid email or password. Try again.");
+      } else if (error.response?.data?.message) {
+        setErrorMessage(error.response.data.message);
       } else if (error.response?.data?.error) {
-        userFriendlyMessage = error.response.data.error;
+        setErrorMessage(error.response.data.error);
+      } else {
+        setErrorMessage("We could not sign you in right now.");
       }
-      setErrorMessage(userFriendlyMessage);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-[calc(100vh-theme(spacing.32))] flex items-center justify-center px-4 py-12 bg-slate-50">
-      <div className="w-full max-w-md">
-        {/* Header */}
-        <div className="text-center mb-10">
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tight mb-3">
-            Welcome Back
+    <div className="grid min-h-[calc(100vh-9rem)] items-center gap-8 lg:grid-cols-[1.1fr_0.9fr]">
+      <section className="glass-panel mesh-card relative overflow-hidden rounded-[36px] px-6 py-8 sm:px-10 sm:py-12">
+        <div className="relative z-10 max-w-xl">
+          <span className="section-kicker">
+            <Sparkles className="h-3.5 w-3.5" />
+            Real collaborators, not vanity metrics
+          </span>
+          <h1 className="display-font mt-6 text-4xl font-bold leading-tight text-[#16353b] sm:text-5xl">
+            Find your next build partner through shared skills and momentum.
           </h1>
-          <p className="text-slate-500 text-lg">
-            Enter your credentials to access your account
+          <p className="mt-5 max-w-lg text-base leading-8 text-slate-600 sm:text-lg">
+            PairVerse already gives you matching peers, connection requests, chat, and build
+            updates. Sign in to keep shaping the stronger collaborator-first version.
           </p>
-        </div>
 
-        {/* Card */}
-        <div className="bg-white p-8 rounded-2xl shadow-xl border border-slate-200 relative overflow-hidden">
-          <form className="space-y-6 relative z-10" onSubmit={handleLogin}>
+          <div className="mt-8 grid gap-4 sm:grid-cols-2">
+            <div className="rounded-[28px] bg-white/78 p-5 shadow-sm ring-1 ring-black/5">
+              <Users2 className="h-5 w-5 text-[#1f6f78]" />
+              <p className="mt-3 text-sm font-semibold uppercase tracking-[0.18em] text-slate-400">
+                Match signals
+              </p>
+              <p className="mt-2 text-sm leading-7 text-slate-600">
+                Shared tech stack, experience, and profile depth already power discovery today.
+              </p>
+            </div>
+            <div className="rounded-[28px] bg-[#18474f] p-5 text-[#fff6ea] shadow-[0_18px_40px_rgba(24,71,79,0.2)]">
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#d6ece8]">
+                Next up
+              </p>
+              <p className="mt-3 text-base font-semibold">
+                Project listings, availability, and deeper matching can slide into this UI cleanly.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="glass-panel-strong rounded-[36px] px-6 py-8 sm:px-8 sm:py-10">
+        <div className="mx-auto max-w-md">
+          <p className="text-sm font-semibold uppercase tracking-[0.26em] text-[#8b4b19]">
+            Sign in
+          </p>
+          <h2 className="display-font mt-3 text-3xl font-bold text-slate-900">
+            Return to your collaborator workspace
+          </h2>
+          <p className="mt-3 text-sm leading-7 text-slate-600">
+            Your profile, matches, requests, and conversations are waiting.
+          </p>
+
+          <form className="mt-8 space-y-5" onSubmit={handleLogin}>
+            <label className="block">
+              <span className="mb-2 block text-sm font-semibold text-slate-700">Email</span>
+              <div className="field-shell flex items-center gap-3 px-4 py-3">
+                <Mail className="h-4 w-4 text-slate-400" />
+                <input
+                  type="email"
+                  value={emailId}
+                  onChange={(event) => setEmailId(event.target.value)}
+                  placeholder="you@example.com"
+                  className="w-full bg-transparent outline-none placeholder:text-slate-400"
+                  required
+                />
+              </div>
+            </label>
+
+            <label className="block">
+              <span className="mb-2 block text-sm font-semibold text-slate-700">Password</span>
+              <div className="field-shell flex items-center gap-3 px-4 py-3">
+                <LockKeyhole className="h-4 w-4 text-slate-400" />
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  placeholder="Enter your password"
+                  className="w-full bg-transparent outline-none placeholder:text-slate-400"
+                  required
+                />
+              </div>
+            </label>
+
             {errorMessage && (
-              <div className="p-4 rounded-xl bg-rose-50 border border-rose-100 text-rose-600 text-sm font-medium text-center animate-in fade-in slide-in-from-top-1">
+              <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
                 {errorMessage}
               </div>
             )}
 
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-700 ml-1">Email Address</label>
-              <div className="relative">
-                <input
-                  type="email"
-                  value={emailId}
-                  onChange={(e) => setEmailId(e.target.value)}
-                  placeholder="name@company.com"
-                  className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 transition-all font-medium"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-700 ml-1">Password</label>
-              <div className="relative">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter your password"
-                  className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 transition-all font-medium pr-12"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-indigo-600 transition-colors focus:outline-none"
-                >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                </button>
-              </div>
-            </div>
-
             <button
               type="submit"
-              className="w-full py-3.5 px-6 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-500/20 shadow-lg shadow-indigo-500/20 active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2 group"
+              disabled={isLoading}
+              className="flex w-full items-center justify-center gap-2 rounded-full bg-[#18474f] px-5 py-3.5 text-sm font-bold text-[#fff6ea] shadow-[0_18px_40px_rgba(24,71,79,0.18)] transition hover:bg-[#143d43] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Sign In
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              {isLoading ? (
+                <div className="h-5 w-5 animate-spin rounded-full border-2 border-[#d6ece8] border-t-transparent" />
+              ) : (
+                <>
+                  Open workspace
+                  <ArrowRight className="h-4 w-4" />
+                </>
+              )}
             </button>
           </form>
 
-          <div className="mt-8 text-center relative z-10 pt-6 border-t border-slate-100">
-            <p className="text-slate-600">
-              Don't have an account?{" "}
-              <Link
-                to="/signup"
-                className="text-indigo-600 font-semibold hover:text-indigo-700 hover:underline transition-all"
-              >
-                Create Account
-              </Link>
-            </p>
-          </div>
+          <p className="mt-6 text-sm text-slate-600">
+            New here?{" "}
+            <Link to="/signup" className="font-bold text-[#1f6f78] hover:text-[#16353b]">
+              Build your collaborator profile
+            </Link>
+          </p>
         </div>
-      </div>
+      </section>
     </div>
   );
 };

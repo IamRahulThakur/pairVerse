@@ -1,21 +1,29 @@
-import React, { useState } from "react";
-import { useSelector, useDispatch } from "react-redux";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  Bell,
+  Compass,
+  LayoutGrid,
+  LogOut,
+  Menu,
+  MessageSquare,
+  UserRound,
+  Users,
+  X,
+} from "lucide-react";
 import { api } from "../utils/api";
 import { removeUser } from "../utils/userSlice";
-import SearchUsers from "./SearchUsers";
-import {
-  User,
-  Bell,
-  Users,
-  Network,
-  LogOut,
-  Lock,
-  Menu,
-  X,
-  Search,
-  ChevronDown
-} from "lucide-react";
+import UserSearchInput from "./UserSearchInput";
+import { getInitials } from "../utils/formatters";
+
+const navItems = [
+  { path: "/feed", label: "Workspace", icon: LayoutGrid },
+  { path: "/matchingpeers", label: "Matches", icon: Compass },
+  { path: "/connection/requests", label: "Requests", icon: Users },
+  { path: "/chat", label: "Messages", icon: MessageSquare },
+  { path: "/notifications", label: "Alerts", icon: Bell },
+];
 
 const NavBar = () => {
   const user = useSelector((store) => store.user);
@@ -23,212 +31,241 @@ const NavBar = () => {
   const location = useLocation();
   const dispatch = useDispatch();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const hideMobileBottomNav = location.pathname.startsWith("/chat/");
+  const headerRef = useRef(null);
+
+  useEffect(() => {
+    const root = document.documentElement;
+
+    const updateHeaderHeight = () => {
+      const height = headerRef.current?.offsetHeight ?? 0;
+      root.style.setProperty("--app-header-height", `${height}px`);
+    };
+
+    updateHeaderHeight();
+
+    const observer =
+      typeof ResizeObserver !== "undefined"
+        ? new ResizeObserver(() => updateHeaderHeight())
+        : null;
+
+    if (observer && headerRef.current) {
+      observer.observe(headerRef.current);
+    }
+
+    window.addEventListener("resize", updateHeaderHeight);
+
+    return () => {
+      window.removeEventListener("resize", updateHeaderHeight);
+      observer?.disconnect();
+    };
+  }, [isMobileMenuOpen, user]);
 
   const handleLogout = async () => {
     try {
       await api.post("/logout");
-      dispatch(removeUser());
-      navigate("/login");
     } catch (error) {
-      console.error("Error during logout:", error);
+      console.error("Logout error:", error);
+    } finally {
+      dispatch(removeUser());
+      navigate("/login", { replace: true });
     }
   };
 
   const isActiveRoute = (path) => {
+    if (path === "/chat") {
+      return location.pathname.startsWith("/chat");
+    }
+
     return location.pathname === path;
   };
 
-  const navItems = [
-    { path: "/profile", label: "Profile", icon: User },
-    { path: "/notifications", label: "Notifications", icon: Bell },
-    { path: "/connection/requests", label: "Requests", icon: Users },
-    { path: "/matchingpeers", label: "Peers", icon: Network },
-    { path: "/connection", label: "Connections", icon: Users },
-  ];
-
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200 shadow-sm transition-all duration-300">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16 items-center">
-          {/* Logo */}
-          <Link to="/feed" className="flex items-center group">
-            <div className="relative flex items-center gap-2">
-              <span className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent tracking-tight">
+    <>
+      <header ref={headerRef} className="fixed inset-x-0 top-0 z-50 px-3 pt-2 sm:px-5 sm:pt-3">
+        <div className="mx-auto flex max-w-[1400px] items-center justify-between gap-3 rounded-[28px] border border-white/70 bg-[#fffaf2]/92 px-4 py-3 shadow-[0_18px_45px_rgba(36,28,16,0.08)] backdrop-blur-xl sm:px-5">
+          <Link to={user ? "/feed" : "/login"} className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#245b76] text-sm font-black uppercase tracking-[0.24em] text-white shadow-[0_10px_28px_rgba(36,91,118,0.22)]">
+              PV
+            </div>
+            <div>
+              <p className="display-font text-lg font-bold leading-none text-[#16353b]">
                 PairVerse
-              </span>
+              </p>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                Match by skills
+              </p>
             </div>
           </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex md:items-center md:gap-6 flex-1 justify-end">
-            {user && (
-              <>
-                {/* Search Bar */}
-                <div className="w-full max-w-sm mx-4">
-                  <SearchUsers />
-                </div>
-
-                {/* Navigation Links */}
-                <div className="flex items-center gap-1">
+          {user ? (
+            <>
+              <div className="hidden min-w-0 flex-1 items-center gap-3 px-3 lg:flex xl:px-5">
+                <nav className="flex min-w-0 items-center gap-1 xl:gap-2">
                   {navItems.map((item) => {
                     const Icon = item.icon;
                     const active = isActiveRoute(item.path);
+
                     return (
                       <Link
                         key={item.path}
                         to={item.path}
-                        className={`relative p-2.5 rounded-lg transition-all duration-200 group ${active
-                          ? "bg-indigo-50 text-indigo-600"
-                          : "text-slate-500 hover:text-indigo-600 hover:bg-slate-50"
-                          }`}
-                        title={item.label}
+                        className={`rounded-full px-3 py-2 text-sm font-semibold transition xl:px-4 ${
+                          active
+                            ? "bg-[#245b76] text-white"
+                            : "text-slate-600 hover:bg-[#f2ece1] hover:text-slate-900"
+                        }`}
                       >
-                        <Icon className={`w-5 h-5 ${active ? "fill-current/20" : ""}`} strokeWidth={2} />
-                        {active && (
-                          <span className="absolute bottom-1 w-1 h-1 bg-indigo-600 rounded-full left-1/2 -translate-x-1/2"></span>
-                        )}
+                        <span className="flex items-center gap-2">
+                          <Icon className="h-4 w-4" />
+                          {item.label}
+                        </span>
                       </Link>
                     );
                   })}
-                </div>
+                </nav>
+                <UserSearchInput
+                  className="hidden xl:block xl:w-[240px] 2xl:w-[280px] flex-shrink-0"
+                  compact
+                  placeholder="Search collaborators"
+                />
+              </div>
 
-                {/* User Profile Dropdown */}
-                <div className="relative ml-4 pl-4 border-l border-slate-200">
-                  <button
-                    onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
-                    className="flex items-center gap-2.5 focus:outline-none group"
-                  >
-                    <div className="text-right hidden lg:block">
-                      <p className="text-sm font-semibold text-slate-700 group-hover:text-indigo-600 transition-colors leading-tight">
-                        {user.firstName}
-                      </p>
-                      <p className="text-[10px] font-medium text-emerald-500 uppercase tracking-wide">Online</p>
-                    </div>
-                    <div className="relative">
-                      <img
-                        alt="User"
-                        src={user?.photourl || "https://placeimg.com/80/80/people"}
-                        className="w-10 h-10 rounded-full border-2 border-white shadow-sm object-cover ring-2 ring-transparent group-hover:ring-indigo-100 transition-all"
-                      />
-                      <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white shadow-sm"></div>
-                    </div>
-                    <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isProfileDropdownOpen ? "rotate-180" : ""}`} />
-                  </button>
-
-                  {/* Dropdown Menu */}
-                  {isProfileDropdownOpen && (
-                    <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 py-1 ring-1 ring-black/5">
-                      <Link
-                        to="/changepassword"
-                        className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-indigo-600 transition-colors"
-                        onClick={() => setIsProfileDropdownOpen(false)}
-                      >
-                        <Lock className="w-4 h-4" />
-                        Change Password
-                      </Link>
-                      <div className="h-px bg-slate-100 my-1 mx-2"></div>
-                      <button
-                        onClick={() => {
-                          handleLogout();
-                          setIsProfileDropdownOpen(false);
-                        }}
-                        className="flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm font-medium text-rose-500 hover:bg-rose-50 rounded-b-lg transition-colors"
-                      >
-                        <LogOut className="w-4 h-4" />
-                        Logout
-                      </button>
+              <div className="hidden items-center gap-2 lg:flex xl:gap-3">
+                <Link
+                  to="/profile"
+                  className="flex items-center gap-3 rounded-full bg-white/80 px-3 py-2 shadow-sm ring-1 ring-black/5 transition hover:bg-white"
+                >
+                  {user.photourl ? (
+                    <img
+                      src={user.photourl}
+                      alt={`${user.firstName} ${user.lastName}`}
+                      className="h-11 w-11 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#d7ebe6] font-bold text-[#18474f]">
+                      {getInitials(user.firstName, user.lastName)}
                     </div>
                   )}
-                </div>
-              </>
-            )}
-          </div>
+                  <div className="hidden text-left 2xl:block">
+                    <p className="text-sm font-bold text-slate-900">
+                      {user.firstName} {user.lastName}
+                    </p>
+                    <p className="text-xs font-medium text-slate-500">
+                      {user.domain || "Complete your collaborator profile"}
+                    </p>
+                  </div>
+                </Link>
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="rounded-full border border-[#eadfd0] px-3 py-2 text-sm font-semibold text-slate-600 transition hover:border-[#e9c6ab] hover:bg-[#fff3ea] hover:text-[#9d5421] xl:px-4"
+                >
+                  <span className="flex items-center gap-2">
+                    <LogOut className="h-4 w-4" />
+                    <span className="hidden 2xl:inline">Logout</span>
+                  </span>
+                </button>
+              </div>
 
-          {/* Mobile Hamburger */}
-          {user && (
-            <div className="md:hidden flex items-center gap-3">
-              <Link
-                to="/search"
-                className="p-2 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
-              >
-                <Search className="w-5 h-5" />
-              </Link>
               <button
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="p-2 rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                type="button"
+                onClick={() => setIsMobileMenuOpen((current) => !current)}
+                className="rounded-2xl p-3 text-slate-700 transition hover:bg-[#f4ede2] lg:hidden"
               >
-                {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               </button>
+            </>
+          ) : (
+            <div className="flex items-center gap-2">
+              <Link
+                to="/login"
+                className="rounded-full px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-[#f4ede2]"
+              >
+                Log in
+              </Link>
+              <Link
+                to="/signup"
+                className="rounded-full bg-[#18474f] px-4 py-2 text-sm font-semibold text-[#fff6ea] shadow-[0_12px_28px_rgba(24,71,79,0.22)] transition hover:bg-[#143e44]"
+              >
+                Create account
+              </Link>
             </div>
           )}
         </div>
-      </div>
+      </header>
 
-      {/* Mobile Menu */}
-      {isMobileMenuOpen && user && (
-        <div className="md:hidden bg-white/95 backdrop-blur-sm border-t border-slate-200 shadow-lg animate-in slide-in-from-top-2 duration-200">
-          <div className="p-4 space-y-4">
-            {/* User Info */}
-            <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
-              <img
-                alt="User"
-                src={user?.photourl || "https://placeimg.com/80/80/people"}
-                className="w-12 h-12 rounded-full border-2 border-white shadow-sm object-cover"
-              />
-              <div>
-                <p className="font-bold text-slate-900">{user.firstName} {user.lastName}</p>
-                <p className="text-sm text-slate-500">{user.emailId}</p>
-              </div>
-            </div>
+      {user && isMobileMenuOpen && (
+        <div
+          className="fixed inset-x-0 z-40 mx-3 rounded-[28px] border border-white/70 bg-[#fffaf2]/95 p-4 shadow-[0_20px_45px_rgba(30,24,14,0.14)] backdrop-blur-xl lg:hidden"
+          style={{ top: "calc(var(--app-header-height, 0px) + 0.35rem)" }}
+        >
+          <UserSearchInput
+            className="mb-4"
+            onResultClick={() => setIsMobileMenuOpen(false)}
+          />
+          <div className="space-y-2">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const active = isActiveRoute(item.path);
 
-            {/* Navigation Links */}
-            <div className="space-y-1">
-              {navItems.map((item) => {
-                const Icon = item.icon;
-                const active = isActiveRoute(item.path);
-                return (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${active
-                      ? "bg-indigo-50 text-indigo-600 shadow-sm ring-1 ring-indigo-100"
-                      : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-                      }`}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <Icon className="w-5 h-5" />
-                    {item.label}
-                  </Link>
-                );
-              })}
-            </div>
-
-            {/* Additional Options */}
-            <div className="pt-4 border-t border-slate-100 space-y-1">
-              <Link
-                to="/changepassword"
-                className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-600 hover:bg-slate-50 rounded-xl transition-colors"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                <Lock className="w-5 h-5 text-slate-400" />
-                Change Password
-              </Link>
-              <button
-                onClick={() => {
-                  handleLogout();
-                  setIsMobileMenuOpen(false);
-                }}
-                className="flex items-center gap-3 w-full text-left px-4 py-3 text-sm font-medium text-rose-600 hover:bg-rose-50 rounded-xl transition-colors"
-              >
-                <LogOut className="w-5 h-5" />
-                Logout
-              </button>
-            </div>
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold transition ${
+                    active
+                      ? "bg-[#245b76] text-white"
+                      : "bg-white/70 text-slate-700 hover:bg-[#f4ede2]"
+                  }`}
+                >
+                  <Icon className="h-4 w-4" />
+                  {item.label}
+                </Link>
+              );
+            })}
+            <Link
+              to="/profile"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="flex items-center gap-3 rounded-2xl bg-white/80 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-[#f4ede2]"
+            >
+              <UserRound className="h-4 w-4" />
+              My profile
+            </Link>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="flex w-full items-center gap-3 rounded-2xl bg-[#fff0ea] px-4 py-3 text-sm font-semibold text-[#b34b2d]"
+            >
+              <LogOut className="h-4 w-4" />
+              Logout
+            </button>
           </div>
         </div>
       )}
-    </nav>
+
+      {user && !hideMobileBottomNav && (
+        <nav className="fixed inset-x-0 bottom-3 z-40 mx-auto flex max-w-md items-center justify-between rounded-full border border-white/70 bg-[#fffaf2]/92 px-4 py-2 shadow-[0_18px_40px_rgba(29,23,13,0.14)] backdrop-blur-xl lg:hidden">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const active = isActiveRoute(item.path);
+
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`rounded-full p-3 transition ${
+                  active ? "bg-[#245b76] text-white" : "text-slate-500 hover:bg-[#f4ede2]"
+                }`}
+              >
+                <Icon className="h-5 w-5" />
+              </Link>
+            );
+          })}
+        </nav>
+      )}
+    </>
   );
 };
 

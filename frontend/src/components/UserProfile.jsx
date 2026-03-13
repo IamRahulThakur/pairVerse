@@ -1,232 +1,250 @@
-import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useParams, useNavigate } from "react-router-dom";
+import { ArrowLeft, Github, Linkedin, MessageSquareMore, UserPlus } from "lucide-react";
+import toast from "react-hot-toast";
 import { api } from "../utils/api";
-import {
-  ChevronLeft,
-  Briefcase,
-  Code,
-  Globe,
-  Linkedin,
-  Github,
-  Layers,
-  Calendar,
-  AlertCircle,
-  Clock,
-  UserPlus
-} from "lucide-react";
+import { getInitials, humanizeExperience } from "../utils/formatters";
 
 const UserProfile = () => {
   const { userId } = useParams();
   const navigate = useNavigate();
+
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  const fetchUserProfile = async () => {
-    try {
-      setLoading(true);
-      setError("");
-      const response = await api.get(`/profile/${userId}`);
-      setUser(response.data);
-    } catch (err) {
-      setError(err.response?.data?.error || "Failed to load user profile");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [isSending, setIsSending] = useState(false);
+  const [requestSent, setRequestSent] = useState(false);
 
   useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        setLoading(true);
+        const response = await api.get(`/profile/${userId}`);
+        setUser(response.data);
+      } catch (error) {
+        toast.error(error.response?.data?.message || "Could not load profile");
+      } finally {
+        setLoading(false);
+      }
+    };
+
     if (userId) {
       fetchUserProfile();
     }
   }, [userId]);
 
+  const handleConnect = async () => {
+    try {
+      setIsSending(true);
+      await api.post(`/request/send/interested/${userId}`);
+      setRequestSent(true);
+      toast.success("Connection request sent");
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Could not send request");
+    } finally {
+      setIsSending(false);
+    }
+  };
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="relative w-12 h-12">
-          <div className="absolute inset-0 border-4 border-indigo-100 rounded-full"></div>
-          <div className="absolute inset-0 border-4 border-indigo-600 rounded-full border-t-transparent animate-spin"></div>
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="glass-panel-strong flex items-center gap-4 rounded-[28px] px-6 py-5 text-sm font-semibold text-slate-600">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#c8dad6] border-t-[#1f6f78]" />
+          Loading collaborator profile...
         </div>
       </div>
     );
   }
 
-  if (error || !user) {
+  if (!user) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] p-4">
-        <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 text-center max-w-md w-full">
-          <div className="w-16 h-16 bg-rose-50 rounded-full flex items-center justify-center mx-auto mb-4">
-            <AlertCircle className="w-8 h-8 text-rose-500" />
-          </div>
-          <h3 className="text-lg font-bold text-slate-900 mb-2">Profile Not Found</h3>
-          <p className="text-slate-500 mb-6">{error || "The user you are looking for does not exist."}</p>
-          <button
-            onClick={() => navigate(-1)}
-            className="w-full py-2.5 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-700 transition-colors"
-          >
-            Go Back
-          </button>
-        </div>
+      <div className="glass-panel-strong mx-auto max-w-xl rounded-[36px] px-8 py-12 text-center">
+        <h1 className="display-font text-3xl font-bold text-slate-900">Profile unavailable</h1>
+        <p className="mt-3 text-sm leading-7 text-slate-600">
+          This collaborator profile could not be loaded.
+        </p>
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          className="mt-6 rounded-full bg-[#18474f] px-5 py-3 text-sm font-semibold text-[#fff6ea] transition hover:bg-[#143d43]"
+        >
+          Go back
+        </button>
       </div>
     );
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
-      {/* Back Button */}
+    <div className="mx-auto max-w-6xl space-y-8">
       <button
+        type="button"
         onClick={() => navigate(-1)}
-        className="flex items-center text-slate-500 hover:text-indigo-600 transition-colors mb-6 group text-sm font-medium"
+        className="inline-flex items-center gap-2 rounded-full border border-[#e8dccb] bg-white/70 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-white"
       >
-        <ChevronLeft className="w-4 h-4 mr-1 group-hover:-translate-x-0.5 transition-transform" />
+        <ArrowLeft className="h-4 w-4" />
         Back
       </button>
 
-      {/* Profile Header */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-8 group">
-        <div className="h-56 relative overflow-hidden bg-slate-900">
-          <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/20 via-violet-600/20 to-slate-900/40"></div>
-          <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
-        </div>
-
-        <div className="px-8 pb-8">
-          <div className="relative flex flex-col md:flex-row items-end -mt-16 mb-6 gap-6">
-            {/* Avatar */}
-            <div className="relative">
-              <div className="w-32 h-32 rounded-2xl p-1 bg-white shadow-lg">
-                <img
-                  src={user.photourl || "https://placeimg.com/150/150/people"}
-                  alt={`${user.firstName} ${user.lastName}`}
-                  className="w-full h-full rounded-xl object-cover bg-slate-100"
-                />
+      <section className="glass-panel mesh-card rounded-[38px] px-6 py-8 sm:px-8 sm:py-10">
+        <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
+            {user.photourl ? (
+              <img
+                src={user.photourl}
+                alt={`${user.firstName} ${user.lastName}`}
+                className="h-28 w-28 rounded-[32px] object-cover shadow-[0_20px_50px_rgba(24,71,79,0.14)]"
+              />
+            ) : (
+              <div className="flex h-28 w-28 items-center justify-center rounded-[32px] bg-[#d7ebe6] text-3xl font-bold text-[#18474f] shadow-[0_20px_50px_rgba(24,71,79,0.14)]">
+                {getInitials(user.firstName, user.lastName)}
               </div>
-            </div>
-
-            {/* Info */}
-            <div className="flex-1 mb-2">
-              <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-3">
+            )}
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-[0.22em] text-[#8b4b19]">
+                Collaborator profile
+              </p>
+              <h1 className="display-font mt-4 text-4xl font-bold text-[#16353b] sm:text-5xl">
                 {user.firstName} {user.lastName}
-                <span className="text-sm font-normal px-3 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
-                  @{user.username}
-                </span>
               </h1>
-              <p className="text-slate-500 mt-2 flex flex-wrap items-center gap-4 text-sm font-medium">
-                {user.domain && (
-                  <span className="flex items-center gap-1.5">
-                    <Briefcase className="w-4 h-4" />
-                    {user.domain}
+              <div className="mt-4 flex flex-wrap gap-3 text-sm text-slate-600">
+                {user.username && (
+                  <span className="rounded-full bg-white/70 px-3 py-1 font-semibold text-slate-700">
+                    @{user.username}
                   </span>
+                )}
+                {user.domain && (
+                  <span className="rounded-full bg-white/70 px-3 py-1">{user.domain}</span>
                 )}
                 {user.experienceLevel && (
-                  <span className="flex items-center gap-1.5 capitalize">
-                    <Layers className="w-4 h-4" />
-                    {user.experienceLevel}
+                  <span className="rounded-full bg-white/70 px-3 py-1 font-semibold">
+                    {humanizeExperience(user.experienceLevel)}
                   </span>
                 )}
-              </p>
-            </div>
-
-            {/* Connect Actions */}
-            <div className="flex gap-3 mb-2 w-full md:w-auto">
-              <button className="flex-1 md:flex-none px-6 py-2.5 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-700 transition-colors shadow-sm shadow-indigo-200 flex items-center justify-center gap-2">
-                <UserPlus className="w-4 h-4" />
-                Connect
-              </button>
+              </div>
+              {user.bio && (
+                <p className="mt-5 max-w-2xl text-sm leading-8 text-slate-600">{user.bio}</p>
+              )}
             </div>
           </div>
 
-          {/* Content Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 border-t border-slate-100 pt-8">
-            <div className="lg:col-span-2 space-y-8">
-              {/* Bio */}
-              {user.bio && (
-                <div>
-                  <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide mb-3">About</h3>
-                  <p className="text-slate-600 leading-relaxed max-w-2xl">{user.bio}</p>
-                </div>
-              )}
-
-              {/* Tech Stack */}
-              {user.techStack && user.techStack.length > 0 && (
-                <div>
-                  <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide mb-3 flex items-center gap-2">
-                    Tech Stack
-                  </h3>
-                  <div className="flex flex-wrap gap-2">
-                    {user.techStack.map((tech, index) => (
-                      <span
-                        key={index}
-                        className="px-3 py-1.5 rounded-lg bg-slate-50 text-slate-600 text-sm font-medium border border-slate-100"
-                      >
-                        {tech}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Sidebar Info */}
-            <div className="space-y-6">
-              <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100 space-y-6">
-                <h3 className="font-bold text-slate-900 border-b border-slate-200 pb-3">Details</h3>
-
-                <div className="space-y-4">
-                  {user.age && (
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-slate-500 font-medium">Age</span>
-                      <span className="font-semibold text-slate-900">{user.age}</span>
-                    </div>
-                  )}
-                  {user.gender && (
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-slate-500 font-medium">Gender</span>
-                      <span className="font-semibold text-slate-900 capitalize">{user.gender}</span>
-                    </div>
-                  )}
-                  {user.timezone && (
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-slate-500 font-medium">Timezone</span>
-                      <span className="font-semibold text-slate-900">{user.timezone}</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Social Links */}
-                {(user.linkedIn || user.Github) && (
-                  <div className="pt-4 border-t border-slate-200 space-y-3">
-                    {user.linkedIn && (
-                      <a
-                        href={user.linkedIn}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-3 p-3 rounded-xl bg-white border border-slate-200 hover:border-indigo-200 hover:text-indigo-600 transition-all text-sm font-medium text-slate-600 shadow-sm"
-                      >
-                        <Linkedin className="w-4 h-4" />
-                        LinkedIn Profile
-                      </a>
-                    )}
-                    {user.Github && (
-                      <a
-                        href={user.Github}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-3 p-3 rounded-xl bg-white border border-slate-200 hover:border-indigo-200 hover:text-indigo-600 transition-all text-sm font-medium text-slate-600 shadow-sm"
-                      >
-                        <Github className="w-4 h-4" />
-                        GitHub Profile
-                      </a>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
+          <div className="flex flex-wrap gap-3">
+            <button
+              type="button"
+              onClick={handleConnect}
+              disabled={isSending || requestSent}
+              className="rounded-full bg-[#18474f] px-4 py-3 text-sm font-semibold text-[#fff6ea] transition hover:bg-[#143d43] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <span className="flex items-center gap-2">
+                <UserPlus className="h-4 w-4" />
+                {requestSent ? "Request sent" : isSending ? "Sending..." : "Connect"}
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate(`/chat/${userId}`)}
+              className="rounded-full border border-[#e8dccb] bg-white/70 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-white"
+            >
+              <span className="flex items-center gap-2">
+                <MessageSquareMore className="h-4 w-4" />
+                Open chat
+              </span>
+            </button>
           </div>
         </div>
+      </section>
+
+      <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+        <section className="glass-panel-strong rounded-[32px] px-5 py-6 sm:px-6">
+          <h2 className="display-font text-2xl font-bold text-slate-900">Signals for collaboration</h2>
+          <p className="mt-2 text-sm leading-7 text-slate-600">
+            This is what you can use today to evaluate fit before your future project features
+            arrive.
+          </p>
+
+          <div className="mt-6 grid gap-4 sm:grid-cols-2">
+            <InfoBlock title="Timezone" content={user.timezone || "Not added yet"} />
+            <InfoBlock title="Gender" content={user.gender || "Not added yet"} />
+            <InfoBlock title="Domain" content={user.domain || "Not added yet"} />
+            <InfoBlock
+              title="Experience"
+              content={user.experienceLevel ? humanizeExperience(user.experienceLevel) : "Not added yet"}
+            />
+          </div>
+
+          <div className="mt-6">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+              Tech stack
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {user.techStack?.length ? (
+                user.techStack.map((tech) => (
+                  <span
+                    key={tech}
+                    className="rounded-full bg-[#eef6f4] px-3 py-1 text-xs font-semibold text-[#1f6f78]"
+                  >
+                    {tech}
+                  </span>
+                ))
+              ) : (
+                <p className="text-sm text-slate-500">No tech stack added yet.</p>
+              )}
+            </div>
+          </div>
+        </section>
+
+        <aside className="glass-panel-strong rounded-[32px] px-5 py-6 sm:px-6">
+          <h2 className="display-font text-2xl font-bold text-slate-900">External links</h2>
+          <p className="mt-2 text-sm leading-7 text-slate-600">
+            Shared profiles are a lightweight trust layer until deeper verification arrives.
+          </p>
+
+          <div className="mt-6 space-y-3">
+            {user.linkedIn && (
+              <a
+                href={user.linkedIn}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-3 rounded-[22px] border border-[#e8dccb] bg-white/70 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-white"
+              >
+                <Linkedin className="h-4 w-4 text-[#1f6f78]" />
+                LinkedIn profile
+              </a>
+            )}
+            {user.Github && (
+              <a
+                href={user.Github}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-3 rounded-[22px] border border-[#e8dccb] bg-white/70 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-white"
+              >
+                <Github className="h-4 w-4 text-[#1f6f78]" />
+                GitHub profile
+              </a>
+            )}
+            {!user.linkedIn && !user.Github && (
+              <p className="rounded-[24px] border border-dashed border-[#e1d5c5] bg-[#faf6ee] px-4 py-4 text-sm text-slate-500">
+                No external links shared yet.
+              </p>
+            )}
+          </div>
+
+          <Link
+            to="/matchingpeers"
+            className="mt-6 inline-flex rounded-full border border-[#e8dccb] px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-[#f5efe4]"
+          >
+            Back to matches
+          </Link>
+        </aside>
       </div>
     </div>
   );
 };
+
+const InfoBlock = ({ title, content }) => (
+  <div className="rounded-[24px] border border-[#efe5d6] bg-white/70 px-4 py-4">
+    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">{title}</p>
+    <p className="mt-3 text-sm leading-7 text-slate-700">{content}</p>
+  </div>
+);
 
 export default UserProfile;

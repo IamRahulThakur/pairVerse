@@ -1,19 +1,16 @@
-import cookieParser from "cookie-parser";
 import jwt from "jsonwebtoken";
 import { UserModel } from "../model/user.js";
+import { UnauthorisedError } from "../utils/appError.js";
 
 
 export const userAuth =async (req, res, next) => {
-  console.log("Cookies:", req.cookies);
-console.log("Cookie header:", req.headers.cookie);
-
   try {
     // Read Token From Cookies
     const token = req.cookies.token;
 
     // Validate Token 
     if (!token) {
-      return res.status(401).send({ error: "Please Login First..." });
+      throw new UnauthorisedError("Please Login First...");
     }
     
     // Decoded return a object contain {paylod , iat(issued at time)}
@@ -25,12 +22,16 @@ console.log("Cookie header:", req.headers.cookie);
     const user = await UserModel.findById(userId);
 
     if (!user) {
-      throw new Error("User not Found...");
+      throw new UnauthorisedError("User not found");
     }
     req.user = user;
     // Proceed to the next middleware or route handler
     next();
   } catch (error) {
-    res.status(400).send({error: error.message});
+    if (error?.isOperational) {
+      return next(error);
+    }
+
+    return next(new UnauthorisedError(error.message));
   }
 };

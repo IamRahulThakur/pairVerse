@@ -5,6 +5,15 @@ import {
   updatePasswordService,
 } from "../services/profileService.js";
 
+const isProd = process.env.NODE_ENV === "production";
+
+const cookieOptions = {
+  httpOnly: true,
+  secure: isProd,
+  sameSite: isProd ? "none" : "lax",
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+};
+
 export const getProfileHandler = async (req, res, next) => {
   try {
     const userId = req.user._id;
@@ -45,7 +54,7 @@ export const updatePasswordHandler = async (req, res, next) => {
       user
     );
     res.clearCookie("token");
-    res.cookie("token", newToken);
+    res.cookie("token", newToken, cookieOptions);
     return res.json({ message: "Password Updated Successfully !!!" });
   } catch (error) {
     next(error);

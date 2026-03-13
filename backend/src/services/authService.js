@@ -1,5 +1,5 @@
 import { UserModel } from "../model/user.js";
-import { ConflictError, UnauthorisedError } from "../utils/appError.js";
+import { UnauthorisedError } from "../utils/appError.js";
 import { validateSignupData } from "../utils/validation.js";
 import bcrypt from "bcrypt";
 
@@ -7,11 +7,6 @@ export const signupService = async (emailId , password) => {
   await validateSignupData({body : {emailId , password}});
   
   const hashedPassword = await bcrypt.hash(password, 10);
-
-  const existingUser = await UserModel.findOne({ emailId });
-  if (existingUser) {
-    throw new ConflictError("User with this email already exists");
-  }
   const user = new UserModel({
     emailId,
     password: hashedPassword,

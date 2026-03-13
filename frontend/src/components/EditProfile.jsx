@@ -1,48 +1,20 @@
-import { useState, useEffect, useRef } from "react";
-import { useSelector, useDispatch } from "react-redux";
-import { api } from "../utils/api";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { Link, useNavigate } from "react-router-dom";
+import { Github, Linkedin, Plus, Sparkles, Trash2 } from "lucide-react";
 import toast from "react-hot-toast";
+import { api } from "../utils/api";
 import { addUser } from "../utils/userSlice";
-import { useNavigate } from "react-router-dom";
-import {
-  Camera,
-  User,
-  Mail,
-  Briefcase,
-  Code,
-  Globe,
-  Linkedin,
-  Github,
-  Save,
-  X,
-  ChevronLeft,
-  Clock
-} from "lucide-react";
-
-// Moved Section component outside to prevent re-renders losing focus
-// eslint-disable-next-line no-unused-vars
-const Section = ({ title, Icon, children }) => (
-  <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6">
-    <h3 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-3 border-b border-slate-100 pb-4">
-      <div className="p-2 rounded-lg bg-indigo-50 text-indigo-600">
-        <Icon className="w-5 h-5" />
-      </div>
-      {title}
-    </h3>
-    {children}
-  </div>
-);
+import { getInitials } from "../utils/formatters";
 
 const EditProfile = () => {
   const profile = useSelector((store) => store.user);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const usernameRef = useRef(null);
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [username, setUsername] = useState("");
-  const [usernameError, setUsernameError] = useState("");
   const [age, setAge] = useState("");
   const [gender, setGender] = useState("");
   const [photoFile, setPhotoFile] = useState(null);
@@ -56,61 +28,73 @@ const EditProfile = () => {
   const [github, setGithub] = useState("");
   const [emailId, setEmailId] = useState("");
   const [isAgeLocked, setIsAgeLocked] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-
-  const fetchUser = async () => {
-    try {
-      const res = await api.get("/profile");
-      if (res.data.age) {
-        setAge(res.data.age);
-        setIsAgeLocked(true);
-      }
-      dispatch(addUser(res.data));
-    } catch (error) {
-      if (error.status === 401) {
-        navigate("/login");
-      }
-    }
-  };
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    if (!profile) fetchUser();
-  }, []);
+    const fetchUser = async () => {
+      try {
+        const response = await api.get("/profile");
+        dispatch(addUser(response.data));
+      } catch (error) {
+        if (error.response?.status === 401) {
+          navigate("/login", { replace: true });
+        }
+      }
+    };
+
+    if (!profile) {
+      fetchUser();
+    }
+  }, [dispatch, navigate, profile]);
 
   useEffect(() => {
-    if (profile) {
-      setEmailId(profile.emailId || "");
-      setFirstName(profile.firstName || "");
-      setLastName(profile.lastName || "");
-      setUsername(profile.username || "");
-      setAge(profile.age || "");
-      setGender(profile.gender || "");
-      setPreviewUrl(profile.photourl || "");
-      setBio(profile.bio || "");
-      setDomain(profile.domain || "");
-      setTechStack(profile.techStack || []);
-      setExperienceLevel(profile.experienceLevel || "");
-      setTimezone(profile.timezone || "");
-      setLinkedIn(profile.linkedIn || "");
-      setGithub(profile.Github || "");
-    }
+    if (!profile) return;
+
+    setEmailId(profile.emailId || "");
+    setFirstName(profile.firstName || "");
+    setLastName(profile.lastName || "");
+    setUsername(profile.username || "");
+    setAge(profile.age || "");
+    setGender(profile.gender || "");
+    setPreviewUrl(profile.photourl || "");
+    setBio(profile.bio || "");
+    setDomain(profile.domain || "");
+    setTechStack(profile.techStack || []);
+    setExperienceLevel(profile.experienceLevel || "");
+    setTimezone(profile.timezone || "");
+    setLinkedIn(profile.linkedIn || "");
+    setGithub(profile.Github || "");
+    setIsAgeLocked(Boolean(profile.age));
   }, [profile]);
 
-  const handlePhotoChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error("Image size should be less than 5MB");
-        return;
-      }
-      setPhotoFile(file);
-      setPreviewUrl(URL.createObjectURL(file));
+  const handlePhotoChange = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image size should be under 5MB");
+      return;
     }
+
+    setPhotoFile(file);
+    setPreviewUrl(URL.createObjectURL(file));
   };
 
-  const handleUpdate = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
+  const updateTechValue = (index, value) => {
+    setTechStack((current) => current.map((tech, techIndex) => (techIndex === index ? value : tech)));
+  };
+
+  const addTech = () => {
+    setTechStack((current) => [...current, ""]);
+  };
+
+  const removeTech = (index) => {
+    setTechStack((current) => current.filter((_, techIndex) => techIndex !== index));
+  };
+
+  const handleUpdate = async (event) => {
+    event.preventDefault();
+    setIsSaving(true);
 
     try {
       const formData = new FormData();
@@ -125,299 +109,276 @@ const EditProfile = () => {
       formData.append("timezone", timezone);
       formData.append("linkedIn", linkedIn);
       formData.append("Github", github);
-      techStack.forEach((tech) => formData.append("techStack", tech));
-      if (photoFile) formData.append("photo", photoFile);
+
+      techStack
+        .map((tech) => tech.trim())
+        .filter(Boolean)
+        .forEach((tech) => formData.append("techStack", tech));
+
+      if (photoFile) {
+        formData.append("photo", photoFile);
+      }
 
       await api.patch("/profile/edit", formData);
-
-      toast.success("Profile updated successfully!");
+      const refreshed = await api.get("/profile");
+      dispatch(addUser(refreshed.data));
+      toast.success("Profile updated");
       navigate("/profile");
     } catch (error) {
-      if (error.response && error.response.status === 409) {
-        const { field, message } = error.response.data;
-        if (field === "username") {
-          setUsernameError(message);
-          usernameRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-          usernameRef.current?.focus();
-        }
-      } else {
-        toast.error("Failed to update profile. Please try again.");
-      }
+      toast.error(error.response?.data?.message || "Could not update profile");
     } finally {
-      setIsLoading(false);
+      setIsSaving(false);
     }
   };
 
-  const handleTechChange = (e, index) => {
-    const newStack = [...techStack];
-    newStack[index] = e.target.value;
-    setTechStack(newStack);
-  };
-
-  const addTech = () => setTechStack([...techStack, ""]);
-  const removeTech = (index) => setTechStack(techStack.filter((_, i) => i !== index));
-
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <button
-            onClick={() => navigate("/profile")}
-            className="flex items-center text-slate-500 hover:text-indigo-600 transition-colors mb-2 text-sm font-medium"
+    <div className="mx-auto max-w-6xl space-y-8">
+      <section className="glass-panel mesh-card rounded-[36px] px-6 py-8 sm:px-8 sm:py-10">
+        <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-3xl">
+            <span className="section-kicker">
+              <Sparkles className="h-3.5 w-3.5" />
+              Build your collaborator profile
+            </span>
+            <h1 className="display-font mt-6 text-4xl font-bold leading-tight text-[#16353b] sm:text-5xl">
+              Shape the signals your future product direction will depend on.
+            </h1>
+            <p className="mt-4 text-base leading-8 text-slate-600">
+              The backend already uses parts of this data for matching. Making this screen strong
+              now gives you a better current experience and a cleaner runway for the pivot.
+            </p>
+          </div>
+          <Link
+            to="/profile"
+            className="rounded-full border border-[#e8dccb] bg-white/70 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-white"
           >
-            <ChevronLeft className="w-4 h-4 mr-1" />
-            Back to Profile
-          </button>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">
-            Edit Profile
-          </h1>
-          <p className="text-slate-500 mt-1">Update your personal and professional details</p>
+            Back to profile
+          </Link>
         </div>
-      </div>
+      </section>
 
-      <form onSubmit={handleUpdate} className="space-y-6">
-        {/* Personal Info */}
-        <Section title="Personal Information" Icon={User}>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Photo Upload */}
-            <div className="lg:col-span-1 flex flex-col items-center">
-              <div className="relative group cursor-pointer">
-                <div className="w-40 h-40 rounded-full border-4 border-white shadow-lg overflow-hidden bg-slate-100 ring-2 ring-slate-100 group-hover:ring-indigo-200 transition-all">
+      <form className="space-y-6" onSubmit={handleUpdate}>
+        <section className="glass-panel-strong rounded-[32px] px-5 py-6 sm:px-6">
+          <div className="grid gap-8 lg:grid-cols-[280px_1fr]">
+            <div className="space-y-4">
+              <div className="rounded-[30px] bg-[#f8f3ea] p-5 text-center">
+                <label className="group block cursor-pointer">
                   {previewUrl ? (
-                    <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
+                    <img
+                      src={previewUrl}
+                      alt="Profile preview"
+                      className="mx-auto h-40 w-40 rounded-[28px] object-cover shadow-[0_18px_45px_rgba(24,71,79,0.14)]"
+                    />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-slate-300">
-                      <User className="w-16 h-16" />
+                    <div className="mx-auto flex h-40 w-40 items-center justify-center rounded-[28px] bg-[#d7ebe6] text-4xl font-bold text-[#18474f] shadow-[0_18px_45px_rgba(24,71,79,0.14)]">
+                      {getInitials(firstName, lastName)}
                     </div>
                   )}
-                </div>
-                <label className="absolute inset-0 flex items-center justify-center bg-black/40 text-white opacity-0 group-hover:opacity-100 rounded-full transition-opacity cursor-pointer backdrop-blur-[2px]">
-                  <Camera className="w-8 h-8 drop-shadow-md" />
                   <input type="file" accept="image/*" onChange={handlePhotoChange} className="hidden" />
+                  <span className="mt-4 block text-sm font-semibold text-[#1f6f78]">
+                    Upload profile photo
+                  </span>
+                  <span className="mt-1 block text-xs text-slate-500">
+                    Recommended for stronger trust during matching
+                  </span>
                 </label>
               </div>
-              <p className="text-xs text-slate-500 mt-3 font-medium">Click to change photo</p>
             </div>
 
-            {/* Fields */}
-            <div className="lg:col-span-2 space-y-5">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-700">First Name</label>
-                  <input
-                    type="text"
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 transition-all"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-700">Last Name</label>
-                  <input
-                    type="text"
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 transition-all"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-700">Email Address</label>
-                <div className="relative">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                  <input
-                    type="email"
-                    value={emailId}
-                    disabled
-                    className="w-full pl-12 pr-4 py-2.5 rounded-xl bg-slate-100 border border-slate-200 text-slate-500 cursor-not-allowed"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-700">Username</label>
-                  <input
-                    ref={usernameRef}
-                    type="text"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    className={`w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 transition-all ${usernameError ? 'border-rose-300 ring-rose-100 focus:border-rose-500 focus:ring-rose-500/20' : ''}`}
-                    required
-                  />
-                  {usernameError && <p className="text-xs text-rose-500 mt-1 font-medium">{usernameError}</p>}
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-700">Age</label>
-                  <input
-                    type="number"
-                    value={age}
-                    onChange={(e) => setAge(e.target.value)}
-                    disabled={isAgeLocked}
-                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 transition-all disabled:opacity-60 disabled:bg-slate-100"
-                  />
-                </div>
-              </div>
+            <div className="grid gap-5 md:grid-cols-2">
+              <Field label="First name">
+                <input
+                  value={firstName}
+                  onChange={(event) => setFirstName(event.target.value)}
+                  className="field-shell w-full px-4 py-3"
+                  required
+                />
+              </Field>
+              <Field label="Last name">
+                <input
+                  value={lastName}
+                  onChange={(event) => setLastName(event.target.value)}
+                  className="field-shell w-full px-4 py-3"
+                  required
+                />
+              </Field>
+              <Field label="Username">
+                <input
+                  value={username}
+                  onChange={(event) => setUsername(event.target.value)}
+                  className="field-shell w-full px-4 py-3"
+                  required
+                />
+              </Field>
+              <Field label="Email">
+                <input value={emailId} disabled className="field-shell w-full px-4 py-3 opacity-70" />
+              </Field>
+              <Field label="Age">
+                <input
+                  type="number"
+                  value={age}
+                  onChange={(event) => setAge(event.target.value)}
+                  disabled={isAgeLocked}
+                  className="field-shell w-full px-4 py-3 disabled:opacity-70"
+                />
+              </Field>
+              <Field label="Gender">
+                <select
+                  value={gender}
+                  onChange={(event) => setGender(event.target.value)}
+                  className="field-shell w-full px-4 py-3"
+                >
+                  <option value="">Select gender</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                  <option value="other">Other</option>
+                </select>
+              </Field>
             </div>
           </div>
-        </Section>
+        </section>
 
-        {/* Professional Info */}
-        <Section title="Professional Details" Icon={Briefcase}>
-          <div className="space-y-6">
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-700">Bio</label>
-              <textarea
-                value={bio}
-                onChange={(e) => setBio(e.target.value)}
-                rows="4"
-                className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 transition-all resize-none leading-relaxed"
-                placeholder="Tell us about yourself..."
-                maxLength="500"
+        <section className="glass-panel-strong rounded-[32px] px-5 py-6 sm:px-6">
+          <div className="grid gap-5 md:grid-cols-2">
+            <Field label="Domain">
+              <input
+                value={domain}
+                onChange={(event) => setDomain(event.target.value)}
+                placeholder="Frontend, AI tools, full-stack, mobile..."
+                className="field-shell w-full px-4 py-3"
               />
-              <p className="text-xs text-slate-400 text-right">{bio.length}/500</p>
-            </div>
+            </Field>
+            <Field label="Experience level">
+              <select
+                value={experienceLevel}
+                onChange={(event) => setExperienceLevel(event.target.value)}
+                className="field-shell w-full px-4 py-3"
+              >
+                <option value="">Select level</option>
+                <option value="beginner">Beginner</option>
+                <option value="intermediate">Intermediate</option>
+                <option value="advanced">Advanced</option>
+              </select>
+            </Field>
+            <Field label="Timezone">
+              <input
+                value={timezone}
+                onChange={(event) => setTimezone(event.target.value)}
+                placeholder="Asia/Kolkata"
+                className="field-shell w-full px-4 py-3"
+              />
+            </Field>
+            <Field label="Bio" className="md:col-span-2">
+              <textarea
+                rows={4}
+                value={bio}
+                onChange={(event) => setBio(event.target.value)}
+                placeholder="What are you building, what are you good at, and what kind of collaborators do you work well with?"
+                className="field-shell w-full px-4 py-3"
+              />
+            </Field>
+          </div>
+        </section>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-700">Domain</label>
+        <section className="glass-panel-strong rounded-[32px] px-5 py-6 sm:px-6">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <h2 className="display-font text-2xl font-bold text-slate-900">Tech stack</h2>
+              <p className="mt-2 text-sm leading-7 text-slate-600">
+                These tags directly influence the current matching experience.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={addTech}
+              className="rounded-full border border-[#e8dccb] px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-[#f5efe4]"
+            >
+              <span className="flex items-center gap-2">
+                <Plus className="h-4 w-4" />
+                Add tech
+              </span>
+            </button>
+          </div>
+
+          <div className="mt-6 space-y-3">
+            {techStack.length > 0 ? (
+              techStack.map((tech, index) => (
+                <div key={`${index}-${tech}`} className="flex gap-3">
+                  <input
+                    value={tech}
+                    onChange={(event) => updateTechValue(index, event.target.value)}
+                    placeholder="React, Node.js, MongoDB..."
+                    className="field-shell w-full px-4 py-3"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeTech(index)}
+                    className="rounded-full border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700 transition hover:bg-rose-100"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              ))
+            ) : (
+              <div className="rounded-[24px] border border-dashed border-[#e1d5c5] bg-[#faf6ee] px-4 py-5 text-sm text-slate-500">
+                Add at least a few technologies so your matches become more meaningful.
+              </div>
+            )}
+          </div>
+        </section>
+
+        <section className="glass-panel-strong rounded-[32px] px-5 py-6 sm:px-6">
+          <div className="grid gap-5 md:grid-cols-2">
+            <Field label="LinkedIn">
+              <div className="field-shell flex items-center gap-3 px-4 py-3">
+                <Linkedin className="h-4 w-4 text-slate-400" />
                 <input
-                  type="text"
-                  value={domain}
-                  onChange={(e) => setDomain(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 transition-all"
-                  placeholder="e.g. Web Development"
+                  value={linkedIn}
+                  onChange={(event) => setLinkedIn(event.target.value)}
+                  placeholder="https://www.linkedin.com/in/username"
+                  className="w-full bg-transparent outline-none"
                 />
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-700">Experience Level</label>
-                <div className="relative">
-                  <select
-                    value={experienceLevel}
-                    onChange={(e) => setExperienceLevel(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 transition-all appearance-none"
-                  >
-                    <option value="">Select Level</option>
-                    <option value="beginner">Beginner (0-2 years)</option>
-                    <option value="intermediate">Intermediate (2-5 years)</option>
-                    <option value="advanced">Advanced (5+ years)</option>
-                  </select>
-                  <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                    <ChevronLeft className="w-4 h-4 -rotate-90" />
-                  </div>
-                </div>
+            </Field>
+            <Field label="GitHub">
+              <div className="field-shell flex items-center gap-3 px-4 py-3">
+                <Github className="h-4 w-4 text-slate-400" />
+                <input
+                  value={github}
+                  onChange={(event) => setGithub(event.target.value)}
+                  placeholder="https://github.com/username"
+                  className="w-full bg-transparent outline-none"
+                />
               </div>
-            </div>
-
-            <div className="space-y-3">
-              <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                <Code className="w-4 h-4" /> Tech Stack
-              </label>
-              <div className="space-y-3">
-                {techStack.map((tech, index) => (
-                  <div key={index} className="flex gap-2">
-                    <input
-                      type="text"
-                      value={tech}
-                      onChange={(e) => handleTechChange(e, index)}
-                      className="flex-1 px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 transition-all"
-                      placeholder="e.g. React"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeTech(index)}
-                      className="p-3 rounded-xl bg-rose-50 text-rose-500 hover:bg-rose-100 transition-colors border border-rose-100"
-                    >
-                      <X className="w-5 h-5" />
-                    </button>
-                  </div>
-                ))}
-                <button
-                  type="button"
-                  onClick={addTech}
-                  className="w-full py-3 border-2 border-dashed border-slate-200 rounded-xl text-slate-500 hover:border-indigo-200 hover:text-indigo-600 hover:bg-indigo-50 transition-all font-medium text-sm flex items-center justify-center gap-2"
-                >
-                  <Code className="w-4 h-4" />
-                  Add Technology
-                </button>
-              </div>
-            </div>
+            </Field>
           </div>
-        </Section>
+        </section>
 
-        {/* Social Links */}
-        <Section title="Social & Location" Icon={Globe}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                <Linkedin className="w-4 h-4 text-slate-400" /> LinkedIn
-              </label>
-              <input
-                type="url"
-                value={linkedIn}
-                onChange={(e) => setLinkedIn(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 transition-all"
-                placeholder="https://linkedin.com/in/..."
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                <Github className="w-4 h-4 text-slate-400" /> GitHub
-              </label>
-              <input
-                type="url"
-                value={github}
-                onChange={(e) => setGithub(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 transition-all"
-                placeholder="https://github.com/..."
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                <Clock className="w-4 h-4 text-slate-400" /> Timezone
-              </label>
-              <input
-                type="text"
-                value={timezone}
-                onChange={(e) => setTimezone(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 transition-all"
-                placeholder="e.g. UTC-5"
-              />
-            </div>
-          </div>
-        </Section>
-
-        {/* Actions */}
-        <div className="flex justify-end gap-3 pt-4 border-t border-slate-200 mt-8">
-          <button
-            type="button"
-            onClick={() => navigate("/profile")}
-            className="px-6 py-2.5 rounded-xl text-slate-600 font-medium hover:bg-slate-50 transition-colors"
+        <div className="flex flex-wrap justify-end gap-3">
+          <Link
+            to="/profile"
+            className="rounded-full border border-[#e8dccb] px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-[#f5efe4]"
           >
             Cancel
-          </button>
+          </Link>
           <button
             type="submit"
-            disabled={isLoading}
-            className="px-8 py-2.5 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-100 shadow-lg shadow-indigo-600/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
+            disabled={isSaving}
+            className="rounded-full bg-[#18474f] px-5 py-3 text-sm font-semibold text-[#fff6ea] transition hover:bg-[#143d43] disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {isLoading ? (
-              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            ) : (
-              <>
-                <Save className="w-4 h-4" />
-                Save Changes
-              </>
-            )}
+            {isSaving ? "Saving..." : "Save profile"}
           </button>
         </div>
       </form>
     </div>
   );
 };
+
+const Field = ({ label, children, className = "" }) => (
+  <label className={`block ${className}`}>
+    <span className="mb-2 block text-sm font-semibold text-slate-700">{label}</span>
+    {children}
+  </label>
+);
 
 export default EditProfile;

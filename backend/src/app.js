@@ -48,11 +48,17 @@ app.set("trust proxy", 1);
 app.use(
   rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 100,
+    max: 1000,
     standardHeaders: true,
     legacyHeaders: false,
   })
 );
+
+app.use("/api", authRouter);
+app.use("/api", profileRouter);
+app.use("/api", requestRouter);
+app.use("/api", userRouter);
+app.use("/api", chatRouter);
 
 // Handle Multer errors
 app.use((err, req, res, next) => {
@@ -72,14 +78,6 @@ app.use((err, req, res, next) => {
 
   next(err);
 });
-
-app.use("/api", authRouter);
-app.use("/api", profileRouter);
-app.use("/api", requestRouter);
-app.use("/api", userRouter);
-app.use("/api", chatRouter);
-
-
 
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;

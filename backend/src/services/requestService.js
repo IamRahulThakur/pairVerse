@@ -1,5 +1,6 @@
 import { ConnectionRequestModel } from "../model/connectionRequest.js";
 import { UserModel } from "../model/user.js";
+import redis from "../config/redis.js";
 import {
   BadRequestError,
   ConflictError,

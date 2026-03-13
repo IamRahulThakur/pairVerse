@@ -1,16 +1,7 @@
-import React, { useState, useEffect, useCallback } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Bell, CheckCheck, Inbox, Link2 } from "lucide-react";
 import { api } from "../utils/api";
-import { Link } from "react-router-dom";
-import {
-  Bell,
-  Check,
-  CheckCheck,
-  MessageCircle,
-  UserPlus,
-  Heart,
-  FileText,
-  MoreHorizontal
-} from "lucide-react";
+import { formatDateTime, formatRelativeTime } from "../utils/formatters";
 
 const Notifications = () => {
   const [notifications, setNotifications] = useState([]);
@@ -20,7 +11,12 @@ const Notifications = () => {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
 
-  const fetchNotifications = useCallback(async (pageNum = 1, isLoadMore = false) => {
+  const unreadCount = useMemo(
+    () => notifications.filter((item) => item.status === "unread").length,
+    [notifications]
+  );
+
+  const fetchNotifications = useCallback(async (pageNumber = 1, isLoadMore = false) => {
     try {
       if (isLoadMore) {
         setLoadingMore(true);
@@ -29,237 +25,179 @@ const Notifications = () => {
       }
 
       setError("");
-      const response = await api.get(`/user/notifications?page=${pageNum}&limit=10`);
+      const response = await api.get(`/user/notifications?page=${pageNumber}&limit=10`);
+      const incoming = response.data || [];
 
-      if (response.data === "No unread notifications") {
-        if (isLoadMore) {
-          setHasMore(false);
-        } else {
-          setNotifications([]);
-        }
-        return;
-      }
-
-      const newNotifications = response.data.map(notification => ({
-        id: notification._id,
-        title: notification.title,
-        isRead: notification.status === 'read',
-        createdAt: notification.createdAt,
-        type: notification.type
-      }));
-
-      if (isLoadMore) {
-        setNotifications(prev => [...prev, ...newNotifications]);
-      } else {
-        setNotifications(newNotifications);
-      }
-
-      if (newNotifications.length < 10) {
-        setHasMore(false);
-      }
-    } catch (err) {
+      setNotifications((current) => (isLoadMore ? [...current, ...incoming] : incoming));
+      setHasMore(incoming.length === 10);
+    } catch (error) {
+      console.error("Notifications fetch error:", error);
       setError("Failed to load notifications");
-      console.error("Notifications fetch error:", err);
     } finally {
       setLoading(false);
       setLoadingMore(false);
     }
   }, []);
 
+  useEffect(() => {
+    fetchNotifications(1);
+  }, [fetchNotifications]);
+
   const markAsRead = async (notificationId) => {
     try {
       await api.patch(`/user/notification/${notificationId}/mark-read`);
-      setNotifications(prev =>
-        prev.map(notif =>
-          notif.id === notificationId ? { ...notif, isRead: true } : notif
+      setNotifications((current) =>
+        current.map((item) =>
+          item._id === notificationId ? { ...item, status: "read" } : item
         )
       );
-    } catch (err) {
-      console.error("Mark as read error:", err);
+    } catch (error) {
+      console.error("Mark as read error:", error);
     }
   };
 
   const markAllAsRead = async () => {
     try {
       await api.patch("/user/notifications/mark-all-read");
-      setNotifications(prev =>
-        prev.map(notif => ({ ...notif, isRead: true }))
-      );
-    } catch (err) {
-      console.error("Mark all as read error:", err);
+      setNotifications((current) => current.map((item) => ({ ...item, status: "read" })));
+    } catch (error) {
+      console.error("Mark all as read error:", error);
     }
   };
 
   const loadMore = () => {
-    if (!loadingMore && hasMore) {
-      const nextPage = page + 1;
-      setPage(nextPage);
-      fetchNotifications(nextPage, true);
-    }
+    if (loadingMore || !hasMore) return;
+
+    const nextPage = page + 1;
+    setPage(nextPage);
+    fetchNotifications(nextPage, true);
   };
 
-  useEffect(() => {
-    fetchNotifications(1);
-  }, [fetchNotifications]);
-
-  const unreadCount = notifications.filter(notif => !notif.isRead).length;
-
-  if (loading && !loadingMore) {
-    return (
-      <div className="min-h-screen pt-20 pb-10">
-        <div className="max-w-2xl mx-auto px-4">
-          <div className="bg-white rounded-2xl p-6 space-y-4 shadow-sm border border-slate-200">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="flex gap-4 animate-pulse">
-                <div className="w-12 h-12 bg-slate-100 rounded-full"></div>
-                <div className="flex-1 space-y-2">
-                  <div className="h-4 bg-slate-100 rounded w-3/4"></div>
-                  <div className="h-3 bg-slate-100 rounded w-1/2"></div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen pt-8 pb-10">
-      <div className="max-w-2xl mx-auto px-4">
-        {/* Header */}
-        <div className="bg-white rounded-2xl p-4 mb-6 sticky top-24 z-10 border border-slate-200 shadow-sm flex justify-between items-center">
-          <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-            <Bell className="w-6 h-6 text-indigo-600" />
-            Notifications
-            {unreadCount > 0 && (
-              <span className="bg-rose-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
-                {unreadCount}
-              </span>
-            )}
+    <div className="mx-auto max-w-4xl space-y-8">
+      <section className="glass-panel mesh-card rounded-[36px] px-6 py-8 sm:px-8 sm:py-10">
+        <div className="relative z-10 max-w-3xl">
+          <span className="section-kicker">
+            <Bell className="h-3.5 w-3.5" />
+            Network activity
+          </span>
+          <h1 className="display-font mt-6 text-4xl font-bold leading-tight text-[#16353b] sm:text-5xl">
+            Keep track of requests, accepts, and important moments.
           </h1>
+          <p className="mt-4 max-w-2xl text-base leading-8 text-slate-600">
+            Notifications are simple today, but this screen is already shaped for the richer
+            real-time experience you plan to add later.
+          </p>
+        </div>
+      </section>
+
+      <section className="glass-panel-strong rounded-[32px] px-5 py-5 sm:px-6">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-400">
+              Notification inbox
+            </p>
+            <h2 className="display-font mt-2 text-2xl font-bold text-slate-900">
+              {unreadCount} unread
+            </h2>
+          </div>
           {unreadCount > 0 && (
             <button
+              type="button"
               onClick={markAllAsRead}
-              className="text-sm font-medium text-indigo-600 hover:text-indigo-700 flex items-center gap-1 transition-colors"
-              title="Mark all as read"
+              className="rounded-full bg-[#18474f] px-4 py-3 text-sm font-semibold text-[#fff6ea] transition hover:bg-[#143d43]"
             >
-              <CheckCheck className="w-4 h-4" />
-              Mark all read
+              <span className="flex items-center gap-2">
+                <CheckCheck className="h-4 w-4" />
+                Mark all as read
+              </span>
             </button>
           )}
         </div>
+      </section>
 
-        {/* Error Message */}
-        {error && (
-          <div className="bg-rose-50 border border-rose-100 rounded-xl p-4 mb-6 text-rose-600 flex items-center gap-2">
-            <div className="w-2 h-2 bg-rose-500 rounded-full animate-pulse"></div>
-            {error}
-          </div>
-        )}
-
-        {/* Notifications List */}
-        <div className="space-y-2">
-          {notifications.length === 0 ? (
-            <div className="bg-white rounded-2xl border border-dashed border-slate-200 p-12 text-center">
-              <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Bell className="w-10 h-10 text-slate-300" />
-              </div>
-              <h3 className="text-lg font-semibold text-slate-900 mb-1">No notifications yet</h3>
-              <p className="text-slate-500">When you get notifications, they'll show up here.</p>
+      {loading ? (
+        <section className="space-y-4">
+          {Array.from({ length: 5 }).map((_, index) => (
+            <div
+              key={index}
+              className="glass-panel-strong animate-pulse rounded-[28px] px-5 py-5"
+            >
+              <div className="h-4 w-2/3 rounded-full bg-slate-200" />
+              <div className="mt-3 h-3 w-1/2 rounded-full bg-slate-200" />
             </div>
-          ) : (
-            <>
-              {notifications.map((notification) => (
-                <NotificationItem
-                  key={notification.id}
-                  notification={notification}
-                  onMarkAsRead={markAsRead}
-                />
-              ))}
-
-              {hasMore && (
-                <div className="pt-4 text-center">
-                  <button
-                    onClick={loadMore}
-                    disabled={loadingMore}
-                    className="px-4 py-2 text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors"
-                  >
-                    {loadingMore ? (
-                      <div className="w-5 h-5 border-2 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
-                    ) : (
-                      "Load More"
-                    )}
-                  </button>
+          ))}
+        </section>
+      ) : error ? (
+        <section className="rounded-[28px] border border-rose-200 bg-rose-50 px-5 py-4 text-sm font-medium text-rose-700">
+          {error}
+        </section>
+      ) : notifications.length === 0 ? (
+        <section className="glass-panel-strong rounded-[36px] px-8 py-12 text-center">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#eaf4f1] text-[#1f6f78]">
+            <Inbox className="h-8 w-8" />
+          </div>
+          <h2 className="mt-5 text-2xl font-bold text-slate-900">No notifications yet</h2>
+          <p className="mt-3 text-sm leading-7 text-slate-600">
+            When requests or connection updates happen, they will show up here.
+          </p>
+        </section>
+      ) : (
+        <section className="space-y-4">
+          {notifications.map((notification) => (
+            <button
+              key={notification._id}
+              type="button"
+              onClick={() => {
+                if (notification.status === "unread") {
+                  markAsRead(notification._id);
+                }
+              }}
+              className={`glass-panel-strong w-full rounded-[28px] px-5 py-5 text-left transition ${
+                notification.status === "unread"
+                  ? "border border-[#d8ebe7] shadow-[0_20px_45px_rgba(31,111,120,0.08)]"
+                  : ""
+              }`}
+            >
+              <div className="flex items-start gap-4">
+                <div className="mt-1 rounded-2xl bg-[#eef6f4] p-3 text-[#1f6f78]">
+                  <Link2 className="h-5 w-5" />
                 </div>
-              )}
-            </>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-start justify-between gap-4">
+                    <p className="text-sm font-semibold leading-7 text-slate-900">
+                      {notification.title}
+                    </p>
+                    {notification.status === "unread" && (
+                      <span className="mt-2 h-2.5 w-2.5 flex-shrink-0 rounded-full bg-[#1f6f78]" />
+                    )}
+                  </div>
+                  <div className="mt-3 flex flex-wrap items-center gap-3 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+                    <span>{notification.type?.replaceAll("_", " ") || "activity"}</span>
+                    <span>{formatRelativeTime(notification.createdAt)}</span>
+                    <span title={formatDateTime(notification.createdAt)}>
+                      {formatDateTime(notification.createdAt)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </button>
+          ))}
+
+          {hasMore && (
+            <div className="pt-2 text-center">
+              <button
+                type="button"
+                onClick={loadMore}
+                disabled={loadingMore}
+                className="rounded-full border border-[#e8dccb] px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-[#f5efe4] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {loadingMore ? "Loading..." : "Load more"}
+              </button>
+            </div>
           )}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Individual Notification Component
-const NotificationItem = ({ notification, onMarkAsRead }) => {
-  const [isRead, setIsRead] = useState(notification.isRead);
-
-  const handleClick = () => {
-    if (!isRead) {
-      setIsRead(true);
-      onMarkAsRead(notification.id);
-    }
-  };
-
-  const getIconAndColor = (title) => {
-    const t = title.toLowerCase();
-    if (t.includes('connection') || t.includes('request')) {
-      return { icon: UserPlus, color: 'text-indigo-600 bg-indigo-50 border-indigo-100' };
-    } else if (t.includes('message') || t.includes('chat')) {
-      return { icon: MessageCircle, color: 'text-emerald-600 bg-emerald-50 border-emerald-100' };
-    } else if (t.includes('like') || t.includes('reaction')) {
-      return { icon: Heart, color: 'text-rose-500 bg-rose-50 border-rose-100' };
-    } else if (t.includes('post') || t.includes('update')) {
-      return { icon: FileText, color: 'text-violet-600 bg-violet-50 border-violet-100' };
-    } else {
-      return { icon: Bell, color: 'text-slate-500 bg-slate-50 border-slate-100' };
-    }
-  };
-
-  const { icon: Icon, color } = getIconAndColor(notification.title);
-
-  return (
-    <div
-      onClick={handleClick}
-      className={`group relative p-4 rounded-xl transition-all duration-200 cursor-pointer border ${!isRead
-        ? 'bg-blue-50/50 border-blue-100 shadow-sm'
-        : 'bg-white border-transparent hover:border-slate-200 hover:bg-slate-50'
-        }`}
-    >
-      <div className="flex gap-4">
-        {/* Icon */}
-        <div className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 border ${color}`}>
-          <Icon className="w-6 h-6" />
-        </div>
-
-        {/* Content */}
-        <div className="flex-1 min-w-0 py-1">
-          <p className={`text-sm leading-snug ${!isRead ? 'font-semibold text-slate-900' : 'text-slate-600'}`}>
-            {notification.title}
-          </p>
-          <p className="text-xs text-slate-400 mt-1.5 font-medium">
-            {new Date(notification.createdAt).toLocaleDateString()} • {new Date(notification.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-          </p>
-        </div>
-
-        {/* Actions/Status */}
-        <div className="flex flex-col items-end justify-center gap-2 pl-2">
-          {!isRead && (
-            <span className="w-2.5 h-2.5 bg-indigo-600 rounded-full ring-2 ring-white shadow-sm"></span>
-          )}
-        </div>
-      </div>
+        </section>
+      )}
     </div>
   );
 };

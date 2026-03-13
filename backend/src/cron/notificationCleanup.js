@@ -3,10 +3,10 @@ import { notificationModel } from "../model/notifications.js";
 import cron from "node-cron";
 
 export function startCleanNotifications() {
-  cron.schedule("*/5 * * * *", async () => {
+  cron.schedule("0 0 * * *", async () => {
     try {
         const cutoffDate = new Date();
-        cutoffDate.setMinutes(cutoffDate.getMinutes() - 5); // 5 minutes ago
+        cutoffDate.setDate(cutoffDate.getDate() - 30);
             await notificationModel.deleteMany({
             updatedAt: { $lt: cutoffDate },
             status: "read",
