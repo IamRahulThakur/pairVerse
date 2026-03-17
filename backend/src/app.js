@@ -1,14 +1,9 @@
 import express from "express";
-import http from "http";
 import cors from "cors";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
 import rateLimit from "express-rate-limit";
 import hpp from "hpp";
-
-import connectDB from "./config/database.js";
-import initialiseSocket from "./utils/socket.js";
-import { startCleanNotifications } from "./cron/notificationCleanup.js";
 
 import authRouter from "./routes/auth.routes.js";
 import profileRouter from "./routes/profile.routes.js";
@@ -66,17 +61,3 @@ app.use("/api", chatRouter);
 // Handle Multer errors
 app.use(handleMulterErrors);
 app.use(handleApplicationErrors);
-
-
-const server = http.createServer(app);
-initialiseSocket(server);
-
-connectDB()
-  .then(() => {
-    console.log("Database connected");
-    server.listen(3000, () => console.log("Server running on port 3000"));
-    startCleanNotifications();
-  })
-  .catch((err) => {
-    console.error("DB connection error:", err);
-  });

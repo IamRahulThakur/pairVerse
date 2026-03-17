@@ -14,3 +14,13 @@ export const createAndSaveNotification = async (payload) => {
     
     return notification;
 };
+
+export const deleteReadNotificationsOlderThanService = async (days = 30) => {
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - days);
+
+    return notificationModel.deleteMany({
+        updatedAt: { $lt: cutoffDate },
+        status: "read",
+    });
+};
