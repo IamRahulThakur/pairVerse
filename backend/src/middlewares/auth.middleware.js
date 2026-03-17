@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import { UserModel } from "../model/user.js";
+import { UserModel } from "../models/user.model.js";
 import { UnauthorisedError } from "../utils/appError.js";
 
 

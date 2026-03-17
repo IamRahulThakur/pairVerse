@@ -1,4 +1,4 @@
-import { UserModel } from "../model/user.js";
+import { UserModel } from "../models/user.model.js";
 import { UnauthorisedError } from "../utils/appError.js";
 import { validateSignupData } from "../utils/validation.js";
 import bcrypt from "bcrypt";

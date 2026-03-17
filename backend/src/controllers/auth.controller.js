@@ -1,4 +1,4 @@
-import { loginService, signupService } from "../services/authService.js";
+import { loginService, signupService } from "../services/auth.service.js";
 
 const isProd = process.env.NODE_ENV === "production";
 

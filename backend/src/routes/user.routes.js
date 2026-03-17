@@ -1,7 +1,7 @@
 import express from "express";
-import { userAuth } from "../middlewares/auth.js";
+import { userAuth } from "../middlewares/auth.middleware.js";
 
-import { uploadPost } from "../middlewares/multer.js";
+import { uploadPostMedia } from "../middlewares/upload.middleware.js";
 import {
   createPostHandler,
   deletePostHandler,
@@ -14,7 +14,7 @@ import {
   markAllNotificationsAsReadHandler,
   markNotificationAsReadHandler,
   searchUsersHandler,
-} from "../controllers/userController.js";
+} from "../controllers/user.controller.js";
 
 const userRouter = express.Router();
 
@@ -46,7 +46,7 @@ userRouter.patch(
 userRouter.post(
   "/user/posts/create",
   userAuth,
-  uploadPost.array("file", 5),
+  uploadPostMedia.array("file", 5),
   createPostHandler
 );
 

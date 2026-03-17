@@ -1,4 +1,4 @@
-import { respondRequestService, sendRequestService } from "../services/requestService.js";
+import { respondRequestService, sendRequestService } from "../services/request.service.js";
 
 
 export const sendRequestHandler = async (req, res, next) => {

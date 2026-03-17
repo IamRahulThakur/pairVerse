@@ -1,12 +1,12 @@
-import { ConnectionRequestModel } from "../model/connectionRequest.js";
-import { UserModel } from "../model/user.js";
+import { ConnectionRequestModel } from "../models/connection-request.model.js";
+import { UserModel } from "../models/user.model.js";
 import redis from "../config/redis.js";
 import {
   BadRequestError,
   ConflictError,
   NotFoundError,
 } from "../utils/appError.js";
-import { addJobToQueue } from "./queueService.js";
+import { addJobToQueue } from "./queue.service.js";
 
 export const sendRequestService = async (
   fromUserId,

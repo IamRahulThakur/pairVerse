@@ -1,4 +1,4 @@
-import { createAndSaveNotification } from "./notificationService.js";
+import { createAndSaveNotification } from "./notification.service.js";
 
 const jobQueue = [];
 

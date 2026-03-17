@@ -3,7 +3,7 @@ import {
   getProfileService,
   getUserProfileByIdService,
   updatePasswordService,
-} from "../services/profileService.js";
+} from "../services/profile.service.js";
 
 const isProd = process.env.NODE_ENV === "production";
 

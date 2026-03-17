@@ -10,7 +10,7 @@ import {
   markAllNotificationsAsReadService,
   markNotificationAsReadService,
   searchUsersService,
-} from "../services/userService.js";
+} from "../services/user.service.js";
 
 export const getRequestHandler = async (req, res, next) => {
   try {
@@ -82,12 +82,7 @@ export const createPostHandler = async (req, res, next) => {
     const { content } = req.body;
     const files = req.files;
 
-    const newPost = await createPostService(
-      user,
-      content,
-      files,
-      req.mediaUploadAttempted 
-    );
+    const newPost = await createPostService(user, content, files);
 
     res.status(201).json({
       message: "Post created successfully",

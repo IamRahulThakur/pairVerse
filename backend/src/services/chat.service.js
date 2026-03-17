@@ -1,5 +1,5 @@
-import { chatModel } from "../model/chat.js";
-import { UserModel } from "../model/user.js";
+import { chatModel } from "../models/chat.model.js";
+import { UserModel } from "../models/user.model.js";
 import { NotFoundError } from "../utils/appError.js";
 
 export const chatService = async (userId, targetUserId) => {

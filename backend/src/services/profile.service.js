@@ -1,8 +1,9 @@
-import { UserModel } from "../model/user.js";
+import { UserModel } from "../models/user.model.js";
 import validator from "validator";
 import bcrypt from "bcrypt";
 import { BadRequestError, ConflictError, NotFoundError } from "../utils/appError.js";
 import redis from "../config/redis.js";
+import { uploadBufferToCloudinary } from "../utils/cloudinaryUpload.js";
 
 export const getProfileService = async (userId) => {
   return await UserModel.findById(userId, {
@@ -42,11 +43,17 @@ export const editProfileService = async (userId, data, reqFile) => {
   const updates = { ...data };
 
   if (reqFile) {
-    const cloudinaryUrl = reqFile.path || reqFile.secure_url || reqFile.url;
+    const uploadResult = await uploadBufferToCloudinary(reqFile.buffer, {
+      folder: "user_photos",
+      resource_type: "image",
+      transformation: [
+        { width: 500, height: 500, crop: "fill", gravity: "face" },
+        { quality: "auto" },
+        { fetch_format: "auto" },
+      ],
+    });
 
-    if (cloudinaryUrl) {
-      updates.photourl = cloudinaryUrl;
-    }
+    updates.photourl = uploadResult.secure_url;
   }
 
   await redis.del(`matchingPeers:${userId}`);

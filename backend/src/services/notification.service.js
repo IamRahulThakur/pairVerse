@@ -1,4 +1,4 @@
-import { notificationModel } from "../model/notifications.js";
+import { notificationModel } from "../models/notification.model.js";
 
 export const createAndSaveNotification = async (payload) => {
     

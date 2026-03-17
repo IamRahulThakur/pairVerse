@@ -1,5 +1,5 @@
 import validator from 'validator';
-import { UserModel } from '../model/user.js';
+import { UserModel } from '../models/user.model.js';
 
 export const validateSignupData = async (req) => {
     const {emailId, password} = req.body;

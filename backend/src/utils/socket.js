@@ -2,7 +2,7 @@ import { Server } from "socket.io";
 import crypto from "crypto";
 import cookie from "cookie";
 import jwt from "jsonwebtoken";
-import { sendMessageService } from "../services/chatService.js";
+import { sendMessageService } from "../services/chat.service.js";
 
 const getHashedRoomId = (userId, targetUserId) => {
   return crypto

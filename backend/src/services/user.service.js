@@ -1,10 +1,10 @@
-import { ConnectionRequestModel } from "../model/connectionRequest.js";
-import { UserModel } from "../model/user.js";
-import { notificationModel } from "../model/notifications.js";
-import { PostModel } from "../model/post.js";
+import { ConnectionRequestModel } from "../models/connection-request.model.js";
+import { UserModel } from "../models/user.model.js";
+import { notificationModel } from "../models/notification.model.js";
+import { PostModel } from "../models/post.model.js";
 import redis from "../config/redis.js";
 import { BadRequestError, ConflictError, NotFoundError, UnauthorisedError } from "../utils/appError.js";
-import cloudinary from "../config/cloudinary.js";
+import { deleteFromCloudinary, uploadBufferToCloudinary } from "../utils/cloudinaryUpload.js";
 
 
 const USER_SAFE_DATA = [
@@ -117,17 +117,9 @@ export const markAllNotificationsAsReadService = async (userId) => {
 export const createPostService = async (
   user,
   content,
-  files,
-  mediaAttempted
+  files
 ) => {
-
-  if (mediaAttempted && (!files || files.length === 0)) {
-    throw new BadRequestError(
-      "Media upload failed. File may be too large or invalid."
-    );
-  }
-
-  if (!content && (!files || files.length === 0)) {
+  if (!content?.trim() && (!files || files.length === 0)) {
     throw new BadRequestError("Post must contain text or media");
   }
 
@@ -139,32 +131,47 @@ export const createPostService = async (
 
   const media = [];
 
-  if (files && files.length > 0) {
-    for (const file of files) {
-      media.push({
-        url: file.path,
-        publicId: file.filename,
-        type: file.mimetype.startsWith("video") ? "video" : "image",
-      });
-    }
-  }
-
-  const post = new PostModel({
-    userId: user._id,
-    content,
-    media,
-  });
-
   try {
+    if (files && files.length > 0) {
+      for (const file of files) {
+        const isVideo = file.mimetype.startsWith("video/");
+        const uploadResult = await uploadBufferToCloudinary(file.buffer, {
+          folder: "user_posts",
+          resource_type: isVideo ? "video" : "image",
+          ...(isVideo
+            ? {}
+            : {
+                transformation: [
+                  { quality: "auto" },
+                  { fetch_format: "auto" },
+                ],
+              }),
+        });
+
+        media.push({
+          url: uploadResult.secure_url,
+          public_id: uploadResult.public_id,
+          type: isVideo ? "video" : "image",
+        });
+      }
+    }
+
+    const post = new PostModel({
+      userId: user._id,
+      content,
+      media,
+    });
+
     await post.save();
     return post;
   } catch (err) {
     if (media.length > 0) {
-      await Promise.all(
+      await Promise.allSettled(
         media.map((item) =>
-          cloudinary.uploader.destroy(item.publicId, {
-            resource_type: item.type === "video" ? "video" : "image",
-          })
+          deleteFromCloudinary(
+            item.public_id,
+            item.type === "video" ? "video" : "image"
+          )
         )
       );
     }
@@ -189,14 +196,12 @@ export const deletePostService = async (postId, userId) => {
   }
 
   if (post.media && post.media.length > 0) {
-    const deletePromises = post.media.map((item) => {
-      if (item.public_id) {
-        return cloudinary.uploader.destroy(item.public_id);
-      }
-    });
+    const deletePromises = post.media
+      .filter((item) => item.public_id)
+      .map((item) => deleteFromCloudinary(item.public_id, item.type));
 
     try {
-      await Promise.all(deletePromises);
+      await Promise.allSettled(deletePromises);
     } catch (err) {
       console.error("Cloudinary Cleanup Warning:", err.message);
     }

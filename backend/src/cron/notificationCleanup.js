@@ -1,5 +1,5 @@
 // notificationCleanup.js
-import { notificationModel } from "../model/notifications.js";
+import { notificationModel } from "../models/notification.model.js";
 import cron from "node-cron";
 
 export function startCleanNotifications() {
